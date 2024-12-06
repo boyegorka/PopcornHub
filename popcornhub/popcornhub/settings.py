@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'import_export',
     'simple_history',
     'rest_framework',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -82,6 +83,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,  # Значение по умолчанию, если не указано в запросе
     'PAGE_SIZE_QUERY_PARAM': 'page_size',  # Параметр, который будет использоваться в запросах
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 
