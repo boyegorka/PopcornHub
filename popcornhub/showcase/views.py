@@ -1,5 +1,5 @@
-from .models import Movie, Cinema, Showtime
-from .serializers import MovieSerializer, CinemaSerializer, ShowtimeSerializer
+from .models import Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating, OnlineCinema, MovieOnlineCinema
+from .serializers import MovieSerializer, CinemaSerializer, ShowtimeSerializer, ActorSerializer, GenreSerializer, FavoriteSerializer, MovieRatingSerializer, OnlineCinemaSerializer, MovieOnlineCinemaSerializer
 from rest_framework import viewsets
 from .pagination import CustomPagination  # Импортируем кастомную пагинацию
 from rest_framework.decorators import action
@@ -211,4 +211,134 @@ class ShowtimeViewSet(viewsets.ModelViewSet):
 
         showtimes = self.queryset.filter(query)
         serializer = self.get_serializer(showtimes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# ViewSet для модели Actor
+class ActorViewSet(viewsets.ModelViewSet):
+    queryset = Actor.objects.all()
+    serializer_class = ActorSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = ['first_name', 'last_name']
+
+    @action(methods=['GET'], detail=False, url_path='by-movie')
+    def by_movie(self, request):
+        movie_id = request.query_params.get('movie_id')
+        if not movie_id:
+            return Response({"error": "movie_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        actors = self.queryset.filter(movies__id=movie_id)
+        serializer = self.get_serializer(actors, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# ViewSet для модели Genre
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = ['name']
+
+    @action(methods=['GET'], detail=False, url_path='by-movie')
+    def by_movie(self, request):
+        movie_id = request.query_params.get('movie_id')
+        if not movie_id:
+            return Response({"error": "movie_id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        genres = self.queryset.filter(movies__id=movie_id)
+        serializer = self.get_serializer(genres, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# ViewSet для модели Favorite
+class FavoriteViewSet(viewsets.ModelViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = ['movie__title', 'user__username']
+
+    def get_queryset(self):
+        # Фильтруем избранное только для текущего пользователя
+        return Favorite.objects.filter(user=self.request.user)
+
+    @action(methods=['POST'], detail=False, url_path='toggle')
+    def toggle_favorite(self, request):
+        movie_id = request.data.get('movie_id')
+        if not movie_id:
+            return Response({"error": "movie_id is required"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        favorite = Favorite.objects.filter(user=request.user, 
+                                         movie_id=movie_id).first()
+        if favorite:
+            favorite.delete()
+            return Response({"message": "Removed from favorites"}, 
+                          status=status.HTTP_200_OK)
+        else:
+            Favorite.objects.create(user=request.user, movie_id=movie_id)
+            return Response({"message": "Added to favorites"}, 
+                          status=status.HTTP_201_CREATED)
+
+# ViewSet для модели MovieRating
+class MovieRatingViewSet(viewsets.ModelViewSet):
+    queryset = MovieRating.objects.all()
+    serializer_class = MovieRatingSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = ['movie__title', 'user__username']
+
+    @action(methods=['GET'], detail=False, url_path='user-ratings')
+    def user_ratings(self, request):
+        ratings = self.queryset.filter(user=request.user)
+        serializer = self.get_serializer(ratings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['GET'], detail=False, url_path='movie-average')
+    def movie_average(self, request):
+        movie_id = request.query_params.get('movie_id')
+        if not movie_id:
+            return Response({"error": "movie_id is required"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        average = MovieRating.objects.filter(movie_id=movie_id).aggregate(
+            Avg('rating'))
+        return Response({"average": average['rating__avg']}, 
+                       status=status.HTTP_200_OK)
+
+# ViewSet для модели OnlineCinema
+class OnlineCinemaViewSet(viewsets.ModelViewSet):
+    queryset = OnlineCinema.objects.all()
+    serializer_class = OnlineCinemaSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = ['name', 'url']
+
+    @action(methods=['GET'], detail=False, url_path='by-movie')
+    def by_movie(self, request):
+        movie_id = request.query_params.get('movie_id')
+        if not movie_id:
+            return Response({"error": "movie_id is required"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        online_cinemas = self.queryset.filter(
+            movieonlinecinema__movie_id=movie_id)
+        serializer = self.get_serializer(online_cinemas, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# ViewSet для модели MovieOnlineCinema
+class MovieOnlineCinemaViewSet(viewsets.ModelViewSet):
+    queryset = MovieOnlineCinema.objects.all()
+    serializer_class = MovieOnlineCinemaSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = ['movie__title', 'online_cinema__name']
+
+    @action(methods=['GET'], detail=False, url_path='available-platforms')
+    def available_platforms(self, request):
+        movie_id = request.query_params.get('movie_id')
+        if not movie_id:
+            return Response({"error": "movie_id is required"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        platforms = self.queryset.filter(movie_id=movie_id)
+        serializer = self.get_serializer(platforms, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
