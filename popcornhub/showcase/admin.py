@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating, OnlineCinema, MovieOnlineCinema
+from .models import Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating, OnlineCinema, MovieOnlineCinema, UserVisit
 from django.utils.safestring import mark_safe  # Для безопасного рендеринга HTML
 from import_export.admin import ExportMixin
 from simple_history.admin import SimpleHistoryAdmin
@@ -39,7 +39,7 @@ class ShowtimeAdmin(ExportMixin, SimpleHistoryAdmin):
     list_display = ('movie', 'cinema', 'start_time', 'ticket_price')  # Поля для отображения
     list_filter = ('cinema', 'start_time')  # Фильтрация по кинотеатру и времени начала сеанса
     search_fields = ('movie__title', 'cinema__name')  # Поиск по названию фильма и кинотеатра
-    ordering = ('start_time',)  # Сортировка по времени начала сеанса
+    ordering = ('start_time',)  # Сортировка по времени начала ��еанса
     resource_class = ShowtimeResource
 
 # Админка для модели Actor
@@ -90,3 +90,12 @@ class MovieOnlineCinemaAdmin(ExportMixin, SimpleHistoryAdmin):
     search_fields = ('movie__title', 'online_cinema__name')  # Поиск по названию фильма и онлайн кинотеатра
     ordering = ('movie',)  # Сортировка по фильму
     resource_class = MovieOnlineCinemaResource
+
+# Админка для модели UserVisit
+@admin.register(UserVisit)
+class UserVisitAdmin(ExportMixin, SimpleHistoryAdmin):
+    list_display = ('user', 'path', 'method', 'ip_address', 'timestamp')
+    list_filter = ('method', 'timestamp', 'user')
+    search_fields = ('user__username', 'path', 'ip_address')
+    ordering = ('-timestamp',)
+    date_hierarchy = 'timestamp'

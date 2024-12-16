@@ -31,8 +31,5 @@ except Exception as e:
     print(f'Error creating superuser: {str(e)}')
 END
 
-# Запускаем Celery в фоновом режиме
-celery -A popcornhub worker --loglevel=info &
-
 # Запускаем сервер с правильными настройками хоста
 python popcornhub/manage.py runserver 0.0.0.0:8000

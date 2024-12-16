@@ -2,6 +2,7 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 
 # Оригинальные модели
 class Movie(models.Model):
@@ -127,3 +128,21 @@ class MovieOnlineCinema(models.Model):
 
     def __str__(self):
         return f"{self.movie.title} on {self.online_cinema.name}"
+
+
+class UserVisit(models.Model):
+    user = models.ForeignKey(get_user_model(), null=True, blank=True, on_delete=models.SET_NULL)
+    path = models.CharField(max_length=255)
+    method = models.CharField(max_length=10)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(null=True, blank=True)
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'User Visit'
+        verbose_name_plural = 'User Visits'
+
+    def __str__(self):
+        return f"{self.user or 'Anonymous'} - {self.path} at {self.timestamp}"

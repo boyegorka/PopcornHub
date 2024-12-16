@@ -36,12 +36,19 @@ services:
 
   celery:
     build: .
-    command: celery -A popcornhub worker --loglevel=info
+    command: celery -A popcornhub worker -l info --workdir=/app
     volumes:
       - .:/app
     depends_on:
       - redis
       - web
+    environment:
+      - DB_NAME=popcornhub
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DJANGO_SETTINGS_MODULE=popcornhub.settings
 
   mailhog:
     image: mailhog/mailhog

@@ -1,27 +1,18 @@
 import os
 from celery import Celery
-from celery.schedules import crontab
 
-# Set the default Django settings module
+# Установка переменной окружения для настроек Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'popcornhub.settings')
 
-# Create celery app
+# Создание экземпляра приложения Celery
 app = Celery('popcornhub')
 
-# Load task modules from all registered Django app configs.
+# Загрузка конфигурации из настроек Django
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Auto-discover tasks in all installed apps
+# Автоматическое обнаружение и регистрация задач из всех установленных приложений Django
 app.autodiscover_tasks()
 
-# Configure periodic tasks
-app.conf.beat_schedule = {
-    'cleanup-old-ratings': {
-        'task': 'showcase.tasks.cleanup_old_ratings',
-        'schedule': crontab(hour=0, minute=0),  # Run daily at midnight
-    },
-    'update-movie-ratings': {
-        'task': 'showcase.tasks.update_movie_ratings',
-        'schedule': crontab(minute='*/30'),  # Run every 30 minutes
-    },
-} 
+@app.task(bind=True)
+def debug_task(self):
+    print(f'Request: {self.request!r}') 

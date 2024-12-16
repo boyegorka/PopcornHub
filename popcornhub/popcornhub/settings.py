@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'showcase.middleware.UserVisitMiddleware',
 ]
 
 ROOT_URLCONF = 'popcornhub.urls'
