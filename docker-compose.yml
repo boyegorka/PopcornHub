@@ -1,0 +1,53 @@
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - mailhog
+    environment:
+      - DB_NAME=popcornhub
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - EMAIL_HOST=mailhog
+      - EMAIL_PORT=1025
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=popcornhub
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  redis:
+    image: redis:6
+    ports:
+      - "6000:6379"
+
+  celery:
+    build: .
+    command: celery -A popcornhub worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - web
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"  # Web UI
+      - "1025:1025"  # SMTP Server
+
+volumes:
+  postgres_data:

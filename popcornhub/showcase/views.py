@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.filters import SearchFilter
 from django_filters import rest_framework as filters
-from django.db.models import Q
+from django.db.models import Q, Avg  # Add Avg to the import
+from .tasks import send_movie_notification
 
 
 
@@ -46,7 +47,7 @@ class ShowtimeFilter(filters.FilterSet):
 
 # ViewSet для модели Movie
 class MovieViewSet(viewsets.ModelViewSet):
-    queryset = Movie.objects.all()  # Получаем все фильмы
+    queryset = Movie.objects.all()  # Получаем вс�� фильмы
     serializer_class = MovieSerializer  # Используем сериализатор для фильмов
     pagination_class = CustomPagination  # Применяем нашу кастомную пагинацию
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]  # Подключаем фильтрацию
@@ -116,6 +117,14 @@ class MovieViewSet(viewsets.ModelViewSet):
         movies = self.queryset.filter(query)
         serializer = self.get_serializer(movies, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def perform_create(self, serializer):
+        movie = serializer.save()
+        # Отправляем уведомление асинхронно через Celery
+        send_movie_notification.delay(
+            movie.title,
+            'admin@example.com'  # Можно заменить на список email'ов подписчиков
+        )
 
 # ViewSet для модели Cinema
 class CinemaViewSet(viewsets.ModelViewSet):
@@ -299,10 +308,18 @@ class MovieRatingViewSet(viewsets.ModelViewSet):
             return Response({"error": "movie_id is required"}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
-        average = MovieRating.objects.filter(movie_id=movie_id).aggregate(
-            Avg('rating'))
-        return Response({"average": average['rating__avg']}, 
-                       status=status.HTTP_200_OK)
+        # Try to get rating from cache first
+        cache_key = f'movie_rating_{movie_id}'
+        avg_rating = cache.get(cache_key)
+        
+        if avg_rating is None:
+            # If not in cache, calculate and cache it
+            avg_rating = MovieRating.objects.filter(movie_id=movie_id).aggregate(
+                Avg('rating'))['rating__avg']
+            if avg_rating is not None:
+                cache.set(cache_key, avg_rating, timeout=60*60)  # Cache for 1 hour
+        
+        return Response({"average": avg_rating}, status=status.HTTP_200_OK)
 
 # ViewSet для модели OnlineCinema
 class OnlineCinemaViewSet(viewsets.ModelViewSet):
