@@ -85,12 +85,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'popcornhub.wsgi.application'
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,  # Значение по умолчанию, если не указано в запросе
     'PAGE_SIZE_QUERY_PARAM': 'page_size',  # Параметр, который будет использоваться в запросах
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'PopcornHub API',
+    'DESCRIPTION': 'API для управления кинотеатрами и фильмами',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

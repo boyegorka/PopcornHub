@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating, OnlineCinema, MovieOnlineCinema, UserVisit
 from django.utils.safestring import mark_safe  # Для безопасного рендеринга HTML
-from import_export.admin import ExportMixin
+from import_export.admin import ExportMixin, ExportActionModelAdmin
+from import_export.formats import base_formats
 from simple_history.admin import SimpleHistoryAdmin
 
 from import_export import resources
@@ -9,7 +10,8 @@ from .resources import MovieResource, CinemaResource, ShowtimeResource, ActorRes
 
 # Админка для модели Movie
 @admin.register(Movie)
-class MovieAdmin(ExportMixin, SimpleHistoryAdmin):
+class MovieAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
+    formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]
     list_display = ('title', 'release_date', 'duration', 'poster_preview')  # Отображаем поле превью постера
     search_fields = ('title',)  # Поиск по названию фильма
     list_filter = ('release_date', 'genres__name')  # Фильтрация по дате релиза и жанру
@@ -39,12 +41,13 @@ class ShowtimeAdmin(ExportMixin, SimpleHistoryAdmin):
     list_display = ('movie', 'cinema', 'start_time', 'ticket_price')  # Поля для отображения
     list_filter = ('cinema', 'start_time')  # Фильтрация по кинотеатру и времени начала сеанса
     search_fields = ('movie__title', 'cinema__name')  # Поиск по названию фильма и кинотеатра
-    ordering = ('start_time',)  # Сортировка по времени начала ��еанса
+    ordering = ('start_time',)  # Сортировка по времени начала сеанса
     resource_class = ShowtimeResource
 
 # Админка для модели Actor
 @admin.register(Actor)
-class ActorAdmin(ExportMixin, SimpleHistoryAdmin):
+class ActorAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
+    formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]
     list_display = ('name', 'date_of_birth')  # Отображаем имя и дату рождения актёра
     search_fields = ('name',)  # Поиск по имени актёра
     ordering = ('name',)  # Сортировка по имени актёра
@@ -63,7 +66,7 @@ class GenreAdmin(ExportMixin, SimpleHistoryAdmin):
 class FavoriteAdmin(ExportMixin, SimpleHistoryAdmin):
     list_display = ('user', 'movie')  # Отображаем пользователя и фильм
     search_fields = ('user__username', 'movie__title')  # Поиск по имени пользователя и названию фильма
-    ordering = ('user',)  # Сортировка по пользователю
+    ordering = ('user',)  # Сортировка по пользов��телю
     resource_class = FavoriteResource
 
 # Админка для модели MovieRating

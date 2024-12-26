@@ -1,10 +1,12 @@
 from import_export import resources
+from import_export.formats import base_formats
 from .models import Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating, OnlineCinema, MovieOnlineCinema
 
 # Ресурс для Movie
 class MovieResource(resources.ModelResource):
     class Meta:
         model = Movie
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
         fields = ('id', 'title', 'description', 'release_date', 'duration', 'poster')  # Указываем все необходимые поля
         export_order = ('id', 'title', 'description', 'release_date', 'duration', 'poster')  # Порядок полей при экспорте
 
@@ -25,6 +27,8 @@ class MovieResource(resources.ModelResource):
 class CinemaResource(resources.ModelResource):
     class Meta:
         model = Cinema
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
+
         fields = ('id', 'name', 'address')  # Поля для экспорта
         export_order = ('id', 'name', 'address')  # Задаём порядок полей
 
@@ -33,6 +37,7 @@ class CinemaResource(resources.ModelResource):
 class ShowtimeResource(resources.ModelResource):
     class Meta:
         model = Showtime
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
         fields = ('id', 'movie', 'cinema', 'start_time', 'ticket_price')  # Поля для экспорта
         export_order = ('id', 'movie', 'cinema', 'start_time', 'ticket_price')  # Задаём порядок полей
 
@@ -41,14 +46,16 @@ class ShowtimeResource(resources.ModelResource):
 class ActorResource(resources.ModelResource):
     class Meta:
         model = Actor
-        fields = ('id', 'name', 'date_of_birth')  # Поля для экспорта
-        export_order = ('id', 'name', 'date_of_birth')  # Задаём порядок полей
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
+        fields = ('id', 'name', 'date_of_birth', 'biography')  # Поля для экспорта
+        export_order = ('id', 'name', 'date_of_birth', 'biography')  # Задаём порядок полей
 
 
 # Ресурс для Genre
 class GenreResource(resources.ModelResource):
     class Meta:
         model = Genre
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
         fields = ('id', 'name')  # Поля для экспорта
         export_order = ('id', 'name')  # Задаём порядок полей
 
@@ -57,6 +64,7 @@ class GenreResource(resources.ModelResource):
 class FavoriteResource(resources.ModelResource):
     class Meta:
         model = Favorite
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
         fields = ('id', 'user', 'movie')  # Поля для экспорта
         export_order = ('id', 'user', 'movie')  # Задаём порядок полей
 
@@ -65,6 +73,7 @@ class FavoriteResource(resources.ModelResource):
 class MovieRatingResource(resources.ModelResource):
     class Meta:
         model = MovieRating
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
         fields = ('id', 'movie', 'user', 'rating')  # Поля для экспорта
         export_order = ('id', 'movie', 'user', 'rating')  # Задаём порядок полей
 
@@ -73,6 +82,7 @@ class MovieRatingResource(resources.ModelResource):
 class OnlineCinemaResource(resources.ModelResource):
     class Meta:
         model = OnlineCinema
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
         fields = ('id', 'name', 'url')  # Поля для экспорта
         export_order = ('id', 'name', 'url')  # Задаём порядок полей
 
@@ -81,5 +91,6 @@ class OnlineCinemaResource(resources.ModelResource):
 class MovieOnlineCinemaResource(resources.ModelResource):
     class Meta:
         model = MovieOnlineCinema
+        formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
         fields = ('id', 'movie', 'online_cinema')  # Поля для экспорта
         export_order = ('id', 'movie', 'online_cinema')  # Задаём порядок полей

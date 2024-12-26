@@ -19,10 +19,33 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include  # include для маршрутов приложений
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from rest_framework.routers import DefaultRouter
+from showcase.views import (
+    MovieViewSet, 
+    CinemaViewSet,
+    ShowtimeViewSet,
+    ActorViewSet,
+    GenreViewSet,
+    FavoriteViewSet,
+    MovieRatingViewSet,
+    OnlineCinemaViewSet,
+    MovieOnlineCinemaViewSet
+)
+
+router = DefaultRouter()
+router.register(r'movies', MovieViewSet)
+router.register(r'cinemas', CinemaViewSet)
+router.register(r'showtimes', ShowtimeViewSet)
+router.register(r'actors', ActorViewSet)
+router.register(r'genres', GenreViewSet)
+router.register(r'favorites', FavoriteViewSet)
+router.register(r'ratings', MovieRatingViewSet)
+router.register(r'online-cinemas', OnlineCinemaViewSet)
+router.register(r'movie-online-cinemas', MovieOnlineCinemaViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # Админка
-    path('showcase/', include('showcase.urls')),
+    path('api/', include(router.urls)),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
