@@ -14,7 +14,11 @@ import os
 import environ
 from pathlib import Path
 
-env = environ.Env()
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+
+# Чтение .env файла
 environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,10 +29,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1']
 
@@ -51,6 +55,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'drf_spectacular',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -167,7 +172,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis:6379/1",
+        "LOCATION": f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -176,17 +181,13 @@ CACHES = {
 
 # Email settings for development with MailHog
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = '127.0.0.1'
+EMAIL_HOST = 'mailhog'
 EMAIL_PORT = 1025  # MailHog default SMTP port
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
-DEFAULT_FROM_EMAIL = 'PopcornHub <noreply@popcornhub.com>'
+DEFAULT_FROM_EMAIL = '<noreply@popcornhub.com>'
 
 # Celery Configuration
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Europe/Moscow'

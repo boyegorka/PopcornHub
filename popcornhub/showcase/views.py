@@ -7,9 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.filters import SearchFilter
 from django_filters import rest_framework as filters
-from django.db.models import Q, Avg  # Add Avg to the import
-from .tasks import send_movie_notification
-
+from django.db.models import Q, Avg
+from .tasks import send_email_task
 
 
 
@@ -47,7 +46,7 @@ class ShowtimeFilter(filters.FilterSet):
 
 # ViewSet для модели Movie
 class MovieViewSet(viewsets.ModelViewSet):
-    queryset = Movie.objects.all()  # Получаем вс�� фильмы
+    queryset = Movie.objects.all()  # Получаем все фильмы
     serializer_class = MovieSerializer  # Используем сериализатор для фильмов
     pagination_class = CustomPagination  # Применяем нашу кастомную пагинацию
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]  # Подключаем фильтрацию
@@ -178,6 +177,7 @@ class ShowtimeViewSet(viewsets.ModelViewSet):
      # 6. Получить сеансы, которые начнутся в определённый день
     @action(methods=['GET'], detail=False, url_path='on-date')
     def on_date(self, request):
+        # send_email_task.delay()
         date = request.query_params.get('date')
         if not date:
             return Response({"error": "date parameter is required"}, status=status.HTTP_400_BAD_REQUEST)

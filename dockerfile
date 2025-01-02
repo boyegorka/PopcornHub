@@ -2,8 +2,8 @@ FROM python:3.11
 
 WORKDIR /app
 
-# Установка netcat для проверки доступности базы данных
-RUN apt-get update && apt-get install -y netcat-traditional
+# Установка netcat и curl для проверок доступности сервисов
+RUN apt-get update && apt-get install -y netcat-traditional curl
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt

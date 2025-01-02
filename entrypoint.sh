@@ -14,6 +14,13 @@ while ! nc -z redis 6379; do
 done
 echo "Redis started"
 
+# Ждем MailHog
+echo "Waiting for MailHog..."
+while ! nc -z mailhog 1025; do
+    sleep 0.1
+done
+echo "MailHog started"
+
 # Применяем миграции
 python popcornhub/manage.py migrate --noinput
 

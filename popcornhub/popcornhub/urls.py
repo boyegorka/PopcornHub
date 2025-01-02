@@ -29,7 +29,7 @@ from showcase.views import (
     FavoriteViewSet,
     MovieRatingViewSet,
     OnlineCinemaViewSet,
-    MovieOnlineCinemaViewSet
+    MovieOnlineCinemaViewSet,
 )
 
 router = DefaultRouter()

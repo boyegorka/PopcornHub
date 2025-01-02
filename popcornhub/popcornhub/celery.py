@@ -1,18 +1,46 @@
+from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
+from datetime import timedelta
 
-# Установка переменной окружения для настроек Django
+
+# Установите настройки Django для Celery
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'popcornhub.settings')
 
-# Создание экземпляра приложения Celery
+# Создайте экземпляр приложения Celery
 app = Celery('popcornhub')
 
-# Загрузка конфигурации из настроек Django
+app.conf.update(
+    broker_url='redis://redis:6379/0',
+    result_backend='redis://redis:6379/0',
+    task_serializer='json',
+    accept_content=['json'],
+    result_serializer='json',
+    timezone='Europe/Moscow',
+    enable_utc=True,
+    broker_connection_retry_on_startup=True,
+    worker_prefetch_multiplier=1
+)
+
+# Используйте настройки Django
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Автоматическое обнаружение и регистрация задач из всех установленных приложений Django
+# Автоматически найдите задачи в приложениях
 app.autodiscover_tasks()
 
 @app.task(bind=True)
 def debug_task(self):
-    print(f'Request: {self.request!r}') 
+    print(f'Request: {self.request!r}')
+
+
+
+app.conf.beat_schedule = {
+    'demo-task-every-5-seconds': {
+        'task': 'showcase.tasks.periodic_task_demo',
+        'schedule': timedelta(seconds=5),
+    },
+    'send-email-every-minute': {
+        'task': 'showcase.tasks.send_email_task',
+        'schedule': timedelta(seconds=5),
+    },
+}
