@@ -9,6 +9,13 @@ from rest_framework.filters import SearchFilter
 from django_filters import rest_framework as filters
 from django.db.models import Q, Avg
 from .tasks import send_email_task
+from django.core.cache import cache
+from django.conf import settings
+import logging
+from termcolor import colored  # Добавим цветной вывод для наглядности
+from .mixins import CacheMixin
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -45,7 +52,7 @@ class ShowtimeFilter(filters.FilterSet):
 
 
 # ViewSet для модели Movie
-class MovieViewSet(viewsets.ModelViewSet):
+class MovieViewSet(CacheMixin, viewsets.ModelViewSet):
     queryset = Movie.objects.all()  # Получаем все фильмы
     serializer_class = MovieSerializer  # Используем сериализатор для фильмов
     pagination_class = CustomPagination  # Применяем нашу кастомную пагинацию
@@ -90,21 +97,33 @@ class MovieViewSet(viewsets.ModelViewSet):
         title = self.request.query_params.get('title')
         if title:
             queryset = queryset.filter(title__icontains=title)
-        return queryset
+        return self.get_cached_queryset(queryset)
     
     # Фильтрация фильмов по сложным условиям
     @action(methods=['GET'], detail=False, url_path='complex-filter')
     def complex_filter(self, request):
+        cache_key = f'movie_complex_filter_{request.query_params.urlencode()}'
+        cached_result = cache.get(cache_key)
+        
+        if cached_result is not None:
+            message = colored('✨ Результаты фильтрации получены из КЕША Redis', 'green', attrs=['bold'])
+            print("\n" + "="*50)
+            print(message)
+            print(f"Cache key: {cache_key}")
+            print("="*50 + "\n")
+            return Response(cached_result, status=status.HTTP_200_OK)
+
+        message = colored('🔄 Выполняется фильтрация из БАЗЫ ДАННЫХ', 'yellow', attrs=['bold'])
+        print("\n" + "="*50)
+        print(message)
+        print(f"Cache key: {cache_key}")
+        print("="*50 + "\n")
+
         min_duration = request.query_params.get('min_duration', 90)
         max_duration = request.query_params.get('max_duration', 150)
         exclude_word = request.query_params.get('exclude_word', 'boring')
         release_year = request.query_params.get('release_year')
 
-        # Пример сложного запроса: 
-        # (Фильмы с длительностью между min_duration и max_duration) И 
-        # (в названии содержится слово 'action' или 'drama') И 
-        # НЕ содержат слово exclude_word в описании
-        # Если указан release_year, фильтруем по году выхода
         query = (
             Q(duration__gte=min_duration) & Q(duration__lte=max_duration) &
             (Q(title__icontains='action') | Q(title__icontains='drama')) &
@@ -115,6 +134,9 @@ class MovieViewSet(viewsets.ModelViewSet):
 
         movies = self.queryset.filter(query)
         serializer = self.get_serializer(movies, many=True)
+        
+        # Кешируем результат на 30 минут
+        cache.set(cache_key, serializer.data, timeout=1800)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
@@ -177,13 +199,33 @@ class ShowtimeViewSet(viewsets.ModelViewSet):
      # 6. Получить сеансы, которые начнутся в определённый день
     @action(methods=['GET'], detail=False, url_path='on-date')
     def on_date(self, request):
-        # send_email_task.delay()
         date = request.query_params.get('date')
         if not date:
-            return Response({"error": "date parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "date parameter is required"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        cache_key = f'showtime_date_{date}'
+        cached_result = cache.get(cache_key)
+        
+        if cached_result is not None:
+            message = colored('✨ Расписание получено из КЕША Redis', 'green', attrs=['bold'])
+            print("\n" + "="*50)
+            print(message)
+            print(f"Cache key: {cache_key}")
+            print("="*50 + "\n")
+            return Response(cached_result, status=status.HTTP_200_OK)
+        
+        message = colored('🔄 Расписание загружается из БАЗЫ ДАННЫХ', 'yellow', attrs=['bold'])
+        print("\n" + "="*50)
+        print(message)
+        print(f"Cache key: {cache_key}")
+        print("="*50 + "\n")
         
         showtimes = self.queryset.filter(start_time__date=date)
         serializer = self.get_serializer(showtimes, many=True)
+        
+        # Кешируем результат на 15 минут
+        cache.set(cache_key, serializer.data, timeout=900)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 7. Обновить цену билета для конкретного сеанса
@@ -288,12 +330,13 @@ class FavoriteViewSet(viewsets.ModelViewSet):
                           status=status.HTTP_201_CREATED)
 
 # ViewSet для модели MovieRating
-class MovieRatingViewSet(viewsets.ModelViewSet):
+class MovieRatingViewSet(CacheMixin, viewsets.ModelViewSet):
     queryset = MovieRating.objects.all()
     serializer_class = MovieRatingSerializer
-    pagination_class = CustomPagination
-    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
-    search_fields = ['movie__title', 'user__username']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return self.get_cached_queryset(queryset)
 
     @action(methods=['GET'], detail=False, url_path='user-ratings')
     def user_ratings(self, request):
@@ -308,16 +351,14 @@ class MovieRatingViewSet(viewsets.ModelViewSet):
             return Response({"error": "movie_id is required"}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
-        # Try to get rating from cache first
         cache_key = f'movie_rating_{movie_id}'
         avg_rating = cache.get(cache_key)
         
         if avg_rating is None:
-            # If not in cache, calculate and cache it
             avg_rating = MovieRating.objects.filter(movie_id=movie_id).aggregate(
                 Avg('rating'))['rating__avg']
             if avg_rating is not None:
-                cache.set(cache_key, avg_rating, timeout=60*60)  # Cache for 1 hour
+                cache.set(cache_key, avg_rating, timeout=3600)
         
         return Response({"average": avg_rating}, status=status.HTTP_200_OK)
 

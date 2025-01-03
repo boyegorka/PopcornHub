@@ -66,7 +66,7 @@ class GenreAdmin(ExportMixin, SimpleHistoryAdmin):
 class FavoriteAdmin(ExportMixin, SimpleHistoryAdmin):
     list_display = ('user', 'movie')  # Отображаем пользователя и фильм
     search_fields = ('user__username', 'movie__title')  # Поиск по имени пользователя и названию фильма
-    ordering = ('user',)  # Сортировка по пользов��телю
+    ordering = ('user',)  # Сортировка по пользователю
     resource_class = FavoriteResource
 
 # Админка для модели MovieRating
@@ -102,3 +102,6 @@ class UserVisitAdmin(ExportMixin, SimpleHistoryAdmin):
     search_fields = ('user__username', 'path', 'ip_address')
     ordering = ('-timestamp',)
     date_hierarchy = 'timestamp'
+
+    def get_app_label(self):
+        return 'auth'  # Перемещаем в раздел Authentication and Authorization

@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'drf_spectacular',
-    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -191,3 +190,32 @@ CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} | {levelname} | {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'user_visits': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'userLogs', 'user_visits.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'showcase.middleware': {
+            'handlers': ['user_visits'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# Создаем директорию для логов при запуске
+os.makedirs(os.path.join(BASE_DIR, 'userLogs'), exist_ok=True)

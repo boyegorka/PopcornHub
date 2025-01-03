@@ -4,6 +4,8 @@ from django.conf import settings
 import logging
 import socket
 from datetime import datetime
+from django.db.models import Avg, Count
+from .models import Movie, MovieRating
 
 logger = logging.getLogger(__name__)
 
@@ -53,66 +55,66 @@ def send_email_task(self):
         logger.error(f"Email sending failed: {str(e)}")
         self.retry(exc=e, countdown=5)
 
-@shared_task
-def test_redis():
-    logger.info("Testing Redis connection")
-    try:
-        # Проверяем подключение к Redis
-        from django_redis import get_redis_connection
-        redis_conn = get_redis_connection("default")
-        redis_conn.ping()
-        logger.info("Redis connection successful!")
-        return "Redis connection successful!"
-    except Exception as e:
-        logger.error(f"Redis connection failed: {str(e)}")
-        raise
+# @shared_task
+# def test_redis():
+#     logger.info("Testing Redis connection")
+#     try:
+#         # Проверяем подключение к Redis
+#         from django_redis import get_redis_connection
+#         redis_conn = get_redis_connection("default")
+#         redis_conn.ping()
+#         logger.info("Redis connection successful!")
+#         return "Redis connection successful!"
+#     except Exception as e:
+#         logger.error(f"Redis connection failed: {str(e)}")
+#         raise
 
-@shared_task
-def test_connections():
-    logger.info("="*50)
-    logger.info("Starting connection tests")
+# @shared_task
+# def test_connections():
+#     logger.info("="*50)
+#     logger.info("Starting connection tests")
     
-    # 1. Проверка Redis
-    try:
-        from django_redis import get_redis_connection
-        redis_conn = get_redis_connection("default")
-        redis_conn.ping()
-        logger.info("✅ Redis connection successful")
-    except Exception as e:
-        logger.error(f"❌ Redis connection failed: {str(e)}")
+#     # 1. Проверка Redis
+#     try:
+#         from django_redis import get_redis_connection
+#         redis_conn = get_redis_connection("default")
+#         redis_conn.ping()
+#         logger.info("✅ Redis connection successful")
+#     except Exception as e:
+#         logger.error(f"❌ Redis connection failed: {str(e)}")
 
-    # 2. Проверка PostgreSQL
-    try:
-        from django.db import connections
-        conn = connections['default']
-        conn.cursor()
-        logger.info("✅ PostgreSQL connection successful")
-    except Exception as e:
-        logger.error(f"❌ PostgreSQL connection failed: {str(e)}")
+#     # 2. Проверка PostgreSQL
+#     try:
+#         from django.db import connections
+#         conn = connections['default']
+#         conn.cursor()
+#         logger.info("✅ PostgreSQL connection successful")
+#     except Exception as e:
+#         logger.error(f"❌ PostgreSQL connection failed: {str(e)}")
 
-    # 3. Проверка Mailhog
-    try:
-        import socket
-        smtp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        smtp.settimeout(5)
-        result = smtp.connect_ex((settings.EMAIL_HOST, settings.EMAIL_PORT))
-        if result == 0:
-            logger.info("✅ Mailhog SMTP connection successful")
-        else:
-            logger.error(f"❌ Mailhog SMTP connection failed with code: {result}")
-        smtp.close()
-    except Exception as e:
-        logger.error(f"❌ Mailhog connection test failed: {str(e)}")
+#     # 3. Проверка Mailhog
+#     try:
+#         import socket
+#         smtp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#         smtp.settimeout(5)
+#         result = smtp.connect_ex((settings.EMAIL_HOST, settings.EMAIL_PORT))
+#         if result == 0:
+#             logger.info("✅ Mailhog SMTP connection successful")
+#         else:
+#             logger.error(f"❌ Mailhog SMTP connection failed with code: {result}")
+#         smtp.close()
+#     except Exception as e:
+#         logger.error(f"❌ Mailhog connection test failed: {str(e)}")
 
-    # 4. Проверка DNS резолвинга
-    for host in ['redis', 'db', 'mailhog']:
-        try:
-            ip = socket.gethostbyname(host)
-            logger.info(f"✅ DNS resolution for {host}: {ip}")
-        except Exception as e:
-            logger.error(f"❌ DNS resolution failed for {host}: {str(e)}")
+#     # 4. Проверка DNS резолвинга
+#     for host in ['redis', 'db', 'mailhog']:
+#         try:
+#             ip = socket.gethostbyname(host)
+#             logger.info(f"✅ DNS resolution for {host}: {ip}")
+#         except Exception as e:
+#             logger.error(f"❌ DNS resolution failed for {host}: {str(e)}")
 
-    logger.info("="*50)
+#     logger.info("="*50)
 
 @shared_task
 def periodic_task_demo():
@@ -125,3 +127,35 @@ def periodic_task_demo():
     logger.info("="*50)
     logger.info("\n")
     return message
+
+@shared_task
+def update_movie_statistics():
+    current_time = datetime.now().strftime("%H:%M:%S")
+    
+    # Получаем все фильмы
+    movies = Movie.objects.all()
+    
+    for movie in movies:
+        # Подсчитываем статистику
+        stats = MovieRating.objects.filter(movie=movie).aggregate(
+            avg_rating=Avg('rating'),
+            total_ratings=Count('rating')
+        )
+        
+        # Обновляем информацию о фильме
+        movie.average_rating = stats['avg_rating'] or 0.0
+        movie.total_ratings = stats['total_ratings']
+        movie.last_updated = datetime.now()
+        movie.save()
+        
+        print(f"""
+        {'='*50}
+        📊 Обновлена статистика фильма:
+        🎬 Название: {movie.title}
+        ⭐ Средний рейтинг: {movie.average_rating:.2f}
+        📈 Всего оценок: {movie.total_ratings}
+        ⏰ Время обновления: {current_time}
+        {'='*50}
+        """)
+            
+        return f"Статистика обновлена для {len(movies)} фильмов"

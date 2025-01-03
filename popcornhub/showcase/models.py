@@ -13,6 +13,7 @@ class Movie(models.Model):
     poster = models.ImageField(upload_to='posters/', blank=True, null=True)
     genres = models.ManyToManyField('Genre', related_name='movies')  # Связь с жанрами
     history = HistoricalRecords()  # Исторические записи изменений
+    average_rating = models.FloatField(default=0.0)
 
     def __str__(self):
         return self.title
@@ -143,6 +144,7 @@ class UserVisit(models.Model):
         ordering = ['-timestamp']
         verbose_name = 'User Visit'
         verbose_name_plural = 'User Visits'
+        app_label = 'auth'  # Это переместит модель в секцию Authentication and Authorization
 
     def __str__(self):
         return f"{self.user or 'Anonymous'} - {self.path} at {self.timestamp}"

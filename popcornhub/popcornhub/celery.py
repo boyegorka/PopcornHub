@@ -41,6 +41,10 @@ app.conf.beat_schedule = {
     },
     'send-email-every-minute': {
         'task': 'showcase.tasks.send_email_task',
-        'schedule': timedelta(seconds=5),
+        'schedule': timedelta(seconds=60),
+    },
+    'update-movie-stats-every-minute': {
+        'task': 'showcase.tasks.update_movie_statistics',
+        'schedule': timedelta(minutes=1),
     },
 }
