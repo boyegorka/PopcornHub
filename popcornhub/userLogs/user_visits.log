@@ -276,3 +276,8 @@
 2025-01-03 04:38:03,400 | INFO | User: admin | Path: /admin/jsi18n/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
 2025-01-03 04:38:04,828 | INFO | User: admin | Path: /admin/showcase/showtime/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
 2025-01-03 04:38:04,858 | INFO | User: admin | Path: /admin/jsi18n/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-03 04:49:46,837 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-03 04:52:13,148 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-03 04:52:37,696 | INFO | User: admin | Path: / | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-03 04:52:40,655 | INFO | User: admin | Path: /admin/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-03 04:52:43,247 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
