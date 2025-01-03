@@ -57,6 +57,11 @@ INSTALLED_APPS = [
     'drf_spectacular',
 ]
 
+# Изменение заголовка админки
+ADMIN_SITE_HEADER = "PopcornHub Administration"
+ADMIN_SITE_TITLE = "PopcornHub Admin Portal"
+ADMIN_INDEX_TITLE = "Welcome to PopcornHub Admin Portal"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
