@@ -12,8 +12,8 @@ from .resources import MovieResource, CinemaResource, ShowtimeResource, ActorRes
 @admin.register(Movie)
 class MovieAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
     formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]
-    list_display = ('title', 'release_date', 'duration', 'poster_preview')  # Отображаем поле превью постера
-    search_fields = ('title',)  # Поиск по названию фильма
+    list_display = ('title', 'release_date', 'duration', 'poster_preview', 'average_rating')  # Отображаем поле превью постера
+    search_fields = ('title', 'description')  # Поиск по названию и описанию фильма
     list_filter = ('release_date', 'genres__name')  # Фильтрация по дате релиза и жанру
     ordering = ('release_date',)  # Сортировка по дате выхода фильма
     resource_class = MovieResource

@@ -15,9 +15,6 @@ import logging
 from termcolor import colored  # Добавим цветной вывод для наглядности
 from .mixins import CacheMixin
 
-logger = logging.getLogger(__name__)
-
-
 
 
 # Фильтры для фильмов
@@ -99,6 +96,20 @@ class MovieViewSet(CacheMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(title__icontains=title)
         return self.get_cached_queryset(queryset)
     
+    @action(methods=['GET'], detail=False, url_path='search-movies')
+    def search_movies(self, request):
+        query = request.query_params.get('q', '')
+        if not query:
+            return Response({"error": "Search query is required"}, 
+                        status=status.HTTP_400_BAD_REQUEST)
+        
+        movies = Movie.objects.filter(
+            Q(title__icontains=query) |  # Поиск по названию
+            Q(description__icontains=query)  # ИЛИ по описанию
+        )
+        serializer = self.get_serializer(movies, many=True)
+        return Response(serializer.data)
+    
     # Фильтрация фильмов по сложным условиям
     @action(methods=['GET'], detail=False, url_path='complex-filter')
     def complex_filter(self, request):
@@ -147,6 +158,20 @@ class MovieViewSet(CacheMixin, viewsets.ModelViewSet):
             'admin@example.com'  # Можно заменить на список email'ов подписчиков
         )
 
+    @action(methods=['GET'], detail=False, url_path='search-movies')
+    def search_movies(self, request):
+        query = request.query_params.get('q', '')
+        if not query:
+            return Response({"error": "Search query is required"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        movies = Movie.objects.filter(
+            Q(title__icontains=query) |  # Поиск по названию
+            Q(description__icontains=query)  # ИЛИ по описанию
+        )
+        serializer = self.get_serializer(movies, many=True)
+        return Response(serializer.data)
+
 # ViewSet для модели Cinema
 class CinemaViewSet(viewsets.ModelViewSet):
     queryset = Cinema.objects.all()
@@ -185,6 +210,18 @@ class CinemaViewSet(viewsets.ModelViewSet):
         if category:
             queryset = queryset.filter(category=category)
         return queryset
+
+    @action(methods=['GET'], detail=False, url_path='search-cinemas')
+    def search_cinemas(self, request):
+        query = request.query_params.get('q', '')
+        exclude_district = request.query_params.get('exclude_district', '')
+        
+        cinemas = Cinema.objects.filter(
+            (Q(name__icontains=query) | Q(address__icontains=query)) &
+            ~Q(address__icontains=exclude_district)
+        )
+        serializer = self.get_serializer(cinemas, many=True)
+        return Response(serializer.data)
 
 
 # ViewSet для модели Showtime
@@ -264,13 +301,27 @@ class ShowtimeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(showtimes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(methods=['GET'], detail=False, url_path='search-showtimes')
+    def search_showtimes(self, request):
+        min_price = request.query_params.get('min_price', 0)
+        max_price = request.query_params.get('max_price', 100000)
+        time_after = request.query_params.get('time_after')
+        
+        query = Q(ticket_price__gte=min_price) & Q(ticket_price__lte=max_price)
+        if time_after:
+            query &= Q(start_time__gte=time_after)
+        
+        showtimes = Showtime.objects.filter(query)
+        serializer = self.get_serializer(showtimes, many=True)
+        return Response(serializer.data)
+
 # ViewSet для модели Actor
-class ActorViewSet(viewsets.ModelViewSet):
+class ActorViewSet(CacheMixin, viewsets.ModelViewSet):
     queryset = Actor.objects.all()
     serializer_class = ActorSerializer
     pagination_class = CustomPagination
-    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
-    search_fields = ['first_name', 'last_name']
+    filter_backends = [SearchFilter]
+    search_fields = ['name', 'biography']  # Добавляем поле для поиска
 
     @action(methods=['GET'], detail=False, url_path='by-movie')
     def by_movie(self, request):
@@ -280,6 +331,22 @@ class ActorViewSet(viewsets.ModelViewSet):
         actors = self.queryset.filter(movies__id=movie_id)
         serializer = self.get_serializer(actors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['GET'], detail=False, url_path='search-actors')
+    def search_actors(self, request):
+        name = request.query_params.get('name', '')
+        min_birth_year = request.query_params.get('min_birth_year')
+        max_birth_year = request.query_params.get('max_birth_year')
+        
+        query = Q(name__icontains=name)
+        if min_birth_year:
+            query &= Q(date_of_birth__year__gte=min_birth_year)
+        if max_birth_year:
+            query &= Q(date_of_birth__year__lte=max_birth_year)
+        
+        actors = Actor.objects.filter(query)
+        serializer = self.get_serializer(actors, many=True)
+        return Response(serializer.data)
 
 
 # ViewSet для модели Genre
@@ -362,6 +429,20 @@ class MovieRatingViewSet(CacheMixin, viewsets.ModelViewSet):
         
         return Response({"average": avg_rating}, status=status.HTTP_200_OK)
 
+    @action(methods=['GET'], detail=False, url_path='search-ratings')
+    def search_ratings(self, request):
+        min_rating = request.query_params.get('min_rating', 1)
+        max_rating = request.query_params.get('max_rating', 10)
+        movie_title = request.query_params.get('movie_title', '')
+        
+        ratings = MovieRating.objects.filter(
+            Q(rating__gte=min_rating) & 
+            Q(rating__lte=max_rating) &
+            Q(movie__title__icontains=movie_title)
+        )
+        serializer = self.get_serializer(ratings, many=True)
+        return Response(serializer.data)
+
 # ViewSet для модели OnlineCinema
 class OnlineCinemaViewSet(viewsets.ModelViewSet):
     queryset = OnlineCinema.objects.all()
@@ -381,6 +462,18 @@ class OnlineCinemaViewSet(viewsets.ModelViewSet):
             movieonlinecinema__movie_id=movie_id)
         serializer = self.get_serializer(online_cinemas, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['GET'], detail=False, url_path='search-platforms')
+    def search_platforms(self, request):
+        query = request.query_params.get('q', '')
+        exclude_domain = request.query_params.get('exclude_domain', '')
+        
+        platforms = OnlineCinema.objects.filter(
+            (Q(name__icontains=query) | Q(url__icontains=query)) &
+            ~Q(url__icontains=exclude_domain)
+        )
+        serializer = self.get_serializer(platforms, many=True)
+        return Response(serializer.data)
 
 # ViewSet для модели MovieOnlineCinema
 class MovieOnlineCinemaViewSet(viewsets.ModelViewSet):
