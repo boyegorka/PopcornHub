@@ -1,6 +1,11 @@
 from import_export import resources
 from import_export.formats import base_formats
-from .models import Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating, OnlineCinema, MovieOnlineCinema
+
+from .models import (
+    Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating,
+    OnlineCinema, MovieOnlineCinema
+)
+
 
 # Ресурс для Movie
 class MovieResource(resources.ModelResource):

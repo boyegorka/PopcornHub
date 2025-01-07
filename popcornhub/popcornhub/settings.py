@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import os
+
 import environ
+
 from pathlib import Path
 
 env = environ.Env(
@@ -58,9 +60,9 @@ INSTALLED_APPS = [
 ]
 
 # Изменение заголовка админки
-ADMIN_SITE_HEADER = "PopcornHub Administration"
-ADMIN_SITE_TITLE = "PopcornHub Admin Portal"
-ADMIN_INDEX_TITLE = "Welcome to PopcornHub Admin Portal"
+ADMIN_SITE_HEADER = 'PopcornHub Administration'
+ADMIN_SITE_TITLE = 'PopcornHub Admin Portal'
+ADMIN_INDEX_TITLE = 'Welcome to PopcornHub Admin Portal'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -114,11 +116,11 @@ SPECTACULAR_SETTINGS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env("DB_NAME"),
-        'USER': env("DB_USER"),
-        'PASSWORD': env("DB_PASSWORD"),
-        'HOST': env("DB_HOST"),
-        'PORT': env("DB_PORT"),
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
 
@@ -174,11 +176,11 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/1",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
     }
 }

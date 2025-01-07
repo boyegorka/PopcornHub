@@ -20,8 +20,9 @@ from django.contrib import admin
 from django.urls import path, include  # include для маршрутов приложений
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from rest_framework.routers import DefaultRouter
+
 from showcase.views import (
-    MovieViewSet, 
+    MovieViewSet,
     CinemaViewSet,
     ShowtimeViewSet,
     ActorViewSet,

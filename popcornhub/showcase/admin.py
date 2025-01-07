@@ -1,12 +1,19 @@
 from django.contrib import admin
-from .models import Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating, OnlineCinema, MovieOnlineCinema, UserVisit
 from django.utils.safestring import mark_safe  # Для безопасного рендеринга HTML
-from import_export.admin import ExportMixin, ExportActionModelAdmin
+from import_export.admin import (ExportActionModelAdmin, ExportMixin)
 from import_export.formats import base_formats
 from simple_history.admin import SimpleHistoryAdmin
 
-from import_export import resources
-from .resources import MovieResource, CinemaResource, ShowtimeResource, ActorResource, GenreResource, FavoriteResource, MovieRatingResource, OnlineCinemaResource, MovieOnlineCinemaResource
+from .resources import (
+    MovieResource, CinemaResource, ShowtimeResource, ActorResource,
+    GenreResource, FavoriteResource, MovieRatingResource,
+    OnlineCinemaResource, MovieOnlineCinemaResource
+)
+from .models import (
+    Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating,
+    OnlineCinema, MovieOnlineCinema, UserVisit
+)
+
 
 # Админка для модели Movie
 @admin.register(Movie)
@@ -22,10 +29,11 @@ class MovieAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
     def poster_preview(self, obj):
         if obj.poster:
             return mark_safe(f'<img src="{obj.poster.url}" style="width: 100px; height: auto;" />')  # Отображаем изображение
-        return "No Image"  # Если изображения нет, показываем текст
+        return 'No Image'  # Если изображения нет, показываем текст
 
     poster_preview.allow_tags = True  # Разрешаем вывод HTML для тега <img>
     poster_preview.short_description = 'Poster Preview'  # Название столбца в админке
+
 
 # Админка для модели Cinema
 @admin.register(Cinema)
@@ -34,6 +42,7 @@ class CinemaAdmin(ExportMixin, SimpleHistoryAdmin):
     search_fields = ('name', 'address')  # Поиск по имени и адресу кинотеатра
     ordering = ('name',)  # Сортировка по имени кинотеатра
     resource_class = CinemaResource
+
 
 # Админка для модели Showtime
 @admin.register(Showtime)
@@ -44,6 +53,7 @@ class ShowtimeAdmin(ExportMixin, SimpleHistoryAdmin):
     ordering = ('start_time',)  # Сортировка по времени начала сеанса
     resource_class = ShowtimeResource
 
+
 # Админка для модели Actor
 @admin.register(Actor)
 class ActorAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
@@ -53,6 +63,7 @@ class ActorAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
     ordering = ('name',)  # Сортировка по имени актёра
     resource_class = ActorResource
 
+
 # Админка для модели Genre
 @admin.register(Genre)
 class GenreAdmin(ExportMixin, SimpleHistoryAdmin):
@@ -61,6 +72,7 @@ class GenreAdmin(ExportMixin, SimpleHistoryAdmin):
     ordering = ('name',)  # Сортировка по названию жанра
     resource_class = GenreResource
 
+
 # Админка для модели Favorite
 @admin.register(Favorite)
 class FavoriteAdmin(ExportMixin, SimpleHistoryAdmin):
@@ -68,6 +80,7 @@ class FavoriteAdmin(ExportMixin, SimpleHistoryAdmin):
     search_fields = ('user__username', 'movie__title')  # Поиск по имени пользователя и названию фильма
     ordering = ('user',)  # Сортировка по пользователю
     resource_class = FavoriteResource
+
 
 # Админка для модели MovieRating
 @admin.register(MovieRating)
@@ -78,6 +91,7 @@ class MovieRatingAdmin(ExportMixin, SimpleHistoryAdmin):
     ordering = ('movie',)  # Сортировка по фильму
     resource_class = MovieRatingResource
 
+
 # Админка для модели OnlineCinema
 @admin.register(OnlineCinema)
 class OnlineCinemaAdmin(ExportMixin, SimpleHistoryAdmin):
@@ -86,6 +100,7 @@ class OnlineCinemaAdmin(ExportMixin, SimpleHistoryAdmin):
     ordering = ('name',)  # Сортировка по названию
     resource_class = OnlineCinemaResource
 
+
 # Админка для модели MovieOnlineCinema
 @admin.register(MovieOnlineCinema)
 class MovieOnlineCinemaAdmin(ExportMixin, SimpleHistoryAdmin):
@@ -93,6 +108,7 @@ class MovieOnlineCinemaAdmin(ExportMixin, SimpleHistoryAdmin):
     search_fields = ('movie__title', 'online_cinema__name')  # Поиск по названию фильма и онлайн кинотеатра
     ordering = ('movie',)  # Сортировка по фильму
     resource_class = MovieOnlineCinemaResource
+
 
 # Админка для модели UserVisit
 @admin.register(UserVisit)

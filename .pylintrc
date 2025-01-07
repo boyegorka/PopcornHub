@@ -1,0 +1,31 @@
+[MASTER]
+ignore=.git,__pycache__,*/migrations/*,venv,env
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+disable=
+    W0503, # Line break occurred before a binary operator
+    C0111, # Missing docstring in public module (equivalent to D100)
+    C0115, # Missing docstring in public class (equivalent to D101)
+    C0116, # Missing docstring in public method (equivalent to D102)
+    C0301, # Line too long (equivalent to E501)
+    C0411, # Wrong import order (equivalent to I100)
+    C0412, # Imports not grouped correctly (equivalent to I101)
+    W0611, # Unused import (equivalent to F401)
+    E0602, # Undefined variable (equivalent to F821)
+    W0612, # Unused variable (equivalent to F841)
+    R0903,
+    R0801,
+    R0901,
+    E1101,
+    W1203
+[IMPORTS]
+import-order-style=google
+
+[BASIC]
+good-names=i,j,k,ex,Run,_,id
+
+[STRING]
+check-quote-consistency=yes

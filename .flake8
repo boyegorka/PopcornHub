@@ -1,0 +1,40 @@
+[flake8]
+max-line-length = 120
+exclude = 
+    .git,
+    __pycache__,
+    */migrations/*,
+    venv,
+    env
+
+# Игнорируем некоторые ошибки
+ignore = 
+    # Line break occurred before a binary operator
+    W503,
+    # Missing docstring in public module
+    D100,
+    # Missing docstring in public class
+    D101,
+    # Missing docstring in public method
+    D102,
+    # Line too long
+    E501,
+    I100,
+    I101,
+    F401,
+    F821,
+    F841,
+
+# Настройки для импортов
+import-order-style = google
+application-import-names = popcornhub,showcase
+
+# Настройки для кавычек
+inline-quotes = single
+multiline-quotes = single
+docstring-quotes = double
+avoid-escape = True
+
+statistics = False
+count = False
+show-source = True

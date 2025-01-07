@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating, OnlineCinema, MovieOnlineCinema
+
+from .models import (
+    Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating,
+    OnlineCinema, MovieOnlineCinema
+)
+
 
 # Сериализатор для модели Movie
 class MovieSerializer(serializers.ModelSerializer):
@@ -7,11 +12,13 @@ class MovieSerializer(serializers.ModelSerializer):
         model = Movie
         fields = ('id', 'title', 'description', 'release_date', 'duration', 'poster', 'genres')
 
+
 # Сериализатор для модели Cinema
 class CinemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cinema
         fields = ('id', 'name', 'address')
+
 
 # Сериализатор для модели Showtime
 class ShowtimeSerializer(serializers.ModelSerializer):
@@ -22,11 +29,13 @@ class ShowtimeSerializer(serializers.ModelSerializer):
         model = Showtime
         fields = ('id', 'movie', 'cinema', 'start_time', 'ticket_price')
 
+
 # Сериализатор для модели Actor
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
         fields = ('id', 'name', 'date_of_birth', 'biography')
+
 
 # Сериализатор для модели Genre
 class GenreSerializer(serializers.ModelSerializer):
@@ -34,11 +43,13 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         fields = ('id', 'name')
 
+
 # Сериализатор для модели Favorite
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
         fields = ('id', 'user', 'movie')
+
 
 # Сериализатор для модели MovieRating
 class MovieRatingSerializer(serializers.ModelSerializer):
@@ -46,11 +57,13 @@ class MovieRatingSerializer(serializers.ModelSerializer):
         model = MovieRating
         fields = ('id', 'movie', 'user', 'rating')
 
+
 # Сериализатор для модели OnlineCinema
 class OnlineCinemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = OnlineCinema
         fields = ('id', 'name', 'url')
+
 
 # Сериализатор для модели MovieOnlineCinema
 class MovieOnlineCinemaSerializer(serializers.ModelSerializer):
