@@ -1862,3 +1862,133 @@
 2025-01-19 20:38:49,211 | INFO | User: admin | Path: /admin/jsi18n/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
 2025-01-19 20:38:55,493 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
 2025-01-19 20:39:25,567 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:43:34,034 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:43:50,848 | INFO | User: admin | Path: /admin/showcase/showtime/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 20:43:50,921 | INFO | User: admin | Path: /admin/jsi18n/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 20:44:04,111 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:44:34,185 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:45:04,264 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:45:34,337 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:46:04,409 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:46:34,487 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:47:04,560 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:47:34,638 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:48:04,718 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:48:34,797 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:49:04,873 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:49:34,945 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:50:05,025 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:50:35,098 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:51:05,176 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:51:35,262 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:52:05,344 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:52:35,422 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:53:05,500 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:53:35,573 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:54:05,639 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:54:35,716 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:55:05,789 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:55:35,868 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:56:05,941 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:56:36,015 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:57:06,096 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:57:36,176 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:58:06,253 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:58:36,330 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:59:06,409 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 20:59:36,489 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:00:06,558 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:00:36,642 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:01:06,730 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:01:36,827 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:02:06,898 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:02:36,975 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:03:07,046 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:03:37,121 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:04:07,178 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:04:37,247 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:05:08,163 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:05:38,245 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:06:08,324 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:06:38,483 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:07:08,587 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:07:38,679 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:08:08,761 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:08:38,842 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:09:08,926 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:09:39,009 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:10:09,087 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:10:39,162 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:11:09,241 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:11:39,318 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:12:09,397 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:12:39,470 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:13:09,546 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:13:39,628 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:14:09,720 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:14:39,793 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:15:09,871 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:15:39,948 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:16:10,033 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:16:40,109 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:17:10,191 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:17:40,273 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:18:10,346 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:18:40,436 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:19:10,526 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:19:40,614 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:20:10,697 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:20:40,780 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:21:10,864 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:21:40,949 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:22:11,020 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:22:41,080 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:23:11,222 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:23:41,289 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:24:11,362 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:24:41,443 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:25:11,676 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:25:41,756 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:26:11,852 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:26:41,925 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:27:12,006 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:27:42,088 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:28:12,164 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:28:42,241 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:29:12,320 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:29:42,406 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:30:12,479 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:30:42,555 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:31:12,631 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:31:42,712 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:32:12,795 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:32:42,870 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:33:12,948 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:33:43,022 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:34:13,100 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:34:43,189 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:35:13,267 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:54:06,513 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:54:36,916 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:55:07,004 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:55:37,101 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:56:07,180 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:56:37,274 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:57:07,357 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:57:37,431 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:58:07,509 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:58:34,723 | INFO | User: admin | Path: /admin/showcase/cinema/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 21:58:34,798 | INFO | User: admin | Path: /admin/jsi18n/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 21:58:37,474 | INFO | User: admin | Path: /admin/showcase/showtime/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 21:58:37,518 | INFO | User: admin | Path: /admin/jsi18n/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 21:58:37,618 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 21:58:39,071 | INFO | User: admin | Path: /admin/showcase/showtime/export/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 21:58:39,111 | INFO | User: admin | Path: /admin/jsi18n/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 21:58:42,390 | INFO | User: admin | Path: /admin/showcase/showtime/export/ | Method: POST | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 21:59:07,693 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 22:11:50,609 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 22:12:05,482 | INFO | User: admin | Path: /admin/showcase/movie/export/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 22:12:05,567 | INFO | User: admin | Path: /admin/jsi18n/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 22:12:17,751 | INFO | User: admin | Path: /admin/showcase/movie/export/ | Method: POST | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-19 22:12:20,680 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-19 22:12:50,764 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1

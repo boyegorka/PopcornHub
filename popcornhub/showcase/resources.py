@@ -1,5 +1,8 @@
 from import_export import resources
 from import_export.formats import base_formats
+from import_export.fields import Field
+from django.db.models import Count
+from django.utils import timezone
 
 from .models import (
     Movie, Cinema, Showtime, Actor, Genre, Favorite, MovieRating,
@@ -9,42 +12,89 @@ from .models import (
 
 # Ресурс для Movie
 class MovieResource(resources.ModelResource):
+    duration_formatted = Field()
+    genres_list = Field()
+
     class Meta:
         model = Movie
         formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
-        fields = ('id', 'title', 'description', 'release_date', 'duration', 'poster')  # Указываем все необходимые поля
-        export_order = ('id', 'title', 'description', 'release_date', 'duration', 'poster')  # Порядок полей при экспорте
+        fields = ('id', 'title', 'description', 'release_date', 'duration', 'duration_formatted', 'genres_list', 'average_rating')
+        export_order = ('id', 'title', 'description', 'release_date', 'duration', 'duration_formatted', 'genres_list', 'average_rating')
 
-    # Метод для кастомизации данных при экспорте
-    def dehydrate_title(self, movie):
-        return movie.title.upper()  # Пример: делаем все заголовки заглавными
+    def get_export_queryset(self, *args, **kwargs):
+        # Экспортируем только фильмы с рейтингом выше 5.0
+        return Movie.objects.filter(average_rating__gte=5.0)
 
-    def dehydrate_release_date(self, movie):
-        # Преобразуем дату в более читаемый формат
-        return movie.release_date.strftime('%d-%m-%Y')
+    def dehydrate_duration_formatted(self, obj):
+        # Преобразуем длительность в часы и минуты
+        hours = obj.duration // 60
+        minutes = obj.duration % 60
+        return f"{hours}ч {minutes}мин"
 
-    def get_export_queryset(self, request, *args, **kwargs):
-        # Возвращаем только фильмы, которые были выпущены после 2000 года
-        return Movie.objects.filter(release_date__year__gte=2000)
+    def dehydrate_genres_list(self, obj):
+        # Преобразуем жанры в строку, разделенную запятыми
+        return ", ".join([genre.name for genre in obj.genres.all()])
+
+    def dehydrate_release_date(self, obj):
+        # Форматируем дату релиза
+        return obj.release_date.strftime("%d %B %Y")
 
 
 # Ресурс для Cinema
 class CinemaResource(resources.ModelResource):
+    movies_count = Field()
+    full_address = Field()
+
     class Meta:
         model = Cinema
         formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
+        fields = ('id', 'name', 'address', 'full_address', 'movies_count')
+        export_order = ('id', 'name', 'full_address', 'movies_count')
 
-        fields = ('id', 'name', 'address')  # Поля для экспорта
-        export_order = ('id', 'name', 'address')  # Задаём порядок полей
+    def get_export_queryset(self, *args, **kwargs):
+        # Экспортируем только кинотеатры с активными сеансами
+        return Cinema.objects.annotate(
+            showtime_count=Count('showtime')
+        ).filter(showtime_count__gt=0)
+
+    def dehydrate_movies_count(self, obj):
+        # Подсчитываем количество уникальных фильмов в кинотеатре
+        return Showtime.objects.filter(cinema=obj).values('movie').distinct().count()
+
+    def dehydrate_full_address(self, obj):
+        # Форматируем полный адрес
+        return f"{obj.name}, {obj.address}"
 
 
 # Ресурс для Showtime
 class ShowtimeResource(resources.ModelResource):
+    movie_duration = Field()
+    formatted_price = Field()
+    formatted_time = Field()
+
     class Meta:
         model = Showtime
         formats = [base_formats.CSV, base_formats.XLS, base_formats.XLSX]  # Добавляем форматы
-        fields = ('id', 'movie', 'cinema', 'start_time', 'ticket_price')  # Поля для экспорта
-        export_order = ('id', 'movie', 'cinema', 'start_time', 'ticket_price')  # Задаём порядок полей
+        fields = ('id', 'movie', 'cinema', 'start_time', 'formatted_time', 'ticket_price', 'formatted_price', 'movie_duration')
+        export_order = ('id', 'movie', 'cinema', 'formatted_time', 'formatted_price', 'movie_duration')
+
+    def get_export_queryset(self, *args, **kwargs):
+        # Экспортируем только будущие сеансы
+        return Showtime.objects.filter(start_time__gt=timezone.now())
+
+    def dehydrate_movie_duration(self, obj):
+        # Добавляем длительность фильма
+        hours = obj.movie.duration // 60
+        minutes = obj.movie.duration % 60
+        return f"{hours}ч {minutes}мин"
+
+    def dehydrate_formatted_price(self, obj):
+        # Форматируем цену с валютой
+        return f"${obj.ticket_price:.2f}"
+
+    def dehydrate_formatted_time(self, obj):
+        # Форматируем время начала сеанса
+        return obj.start_time.strftime("%d.%m.%Y %H:%M")
 
 
 # Ресурс для Actor
