@@ -51,6 +51,11 @@ class Command(BaseCommand):
         # Добавляем жанры к фильмам
         for movie in movies:
             movie.genres.add(*random.sample(genres, k=random.randint(1, 3)))
+        # Добавляем актёров к фильмам
+        for movie in movies:
+            # Случайно выбираем от 2 до 5 актёров для каждого фильма
+            movie_actors = random.sample(actors, k=random.randint(2, 5))
+            movie.actors.add(*movie_actors)
         # Создаем кинотеатры
         cinemas = [
             Cinema.objects.create(

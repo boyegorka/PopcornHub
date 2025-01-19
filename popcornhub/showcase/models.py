@@ -60,6 +60,7 @@ class Actor(models.Model):
     name = models.CharField(max_length=255)
     date_of_birth = models.DateField()
     biography = models.TextField()
+    movies = models.ManyToManyField('Movie', related_name='actors')
     history = HistoricalRecords()
 
     def __str__(self):

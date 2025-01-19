@@ -6,19 +6,25 @@ from .models import (
 )
 
 
-# Сериализатор для модели Movie
-class MovieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Movie
-        fields = ('id', 'title', 'description', 'release_date', 'duration', 'poster', 'genres')
-
-
 # Сериализатор для модели Cinema
 class CinemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cinema
         fields = ('id', 'name', 'address')
 
+# Сериализатор для модели Actor
+class ActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Actor
+        fields = ('id', 'name', 'date_of_birth', 'biography')
+
+# Сериализатор для модели Movie
+class MovieSerializer(serializers.ModelSerializer):
+    actors = ActorSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Movie
+        fields = ('id', 'title', 'description', 'release_date', 'duration', 'poster', 'genres', 'actors')
 
 # Сериализатор для модели Showtime
 class ShowtimeSerializer(serializers.ModelSerializer):
@@ -28,14 +34,6 @@ class ShowtimeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Showtime
         fields = ('id', 'movie', 'cinema', 'start_time', 'ticket_price')
-
-
-# Сериализатор для модели Actor
-class ActorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Actor
-        fields = ('id', 'name', 'date_of_birth', 'biography')
-
 
 # Сериализатор для модели Genre
 class GenreSerializer(serializers.ModelSerializer):
