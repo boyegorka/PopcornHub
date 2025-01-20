@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include  # include для маршрутов приложений
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from rest_framework.routers import DefaultRouter
+from rest_framework import routers
 
 from showcase.views import (
     MovieViewSet,
@@ -33,7 +33,7 @@ from showcase.views import (
     MovieOnlineCinemaViewSet,
 )
 
-router = DefaultRouter()
+router = routers.DefaultRouter()
 router.register(r'movies', MovieViewSet)
 router.register(r'cinemas', CinemaViewSet)
 router.register(r'showtimes', ShowtimeViewSet)
@@ -55,6 +55,10 @@ urlpatterns = [
 # Добавляем маршруты для медиафайлов в режиме DEBUG
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
 
 admin.site.site_header = settings.ADMIN_SITE_HEADER
 admin.site.site_title = settings.ADMIN_SITE_TITLE

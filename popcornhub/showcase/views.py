@@ -1,15 +1,22 @@
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework import status
 from rest_framework.filters import SearchFilter
 from django_filters import rest_framework as filters
 from django.core.cache import cache
 from termcolor import colored  # Добавим цветной вывод для наглядности
 from rest_framework.response import Response
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
+from django.core.paginator import EmptyPage, PageNotAnInteger
 
 from .mixins import CacheMixin
 
-from django.db.models import Q, Avg
+from django.db.models import Q, Avg, Count
 
 from .pagination import CustomPagination  # Импортируем кастомную пагинацию
 from .models import (
@@ -21,6 +28,8 @@ from .serializers import (
     GenreSerializer, FavoriteSerializer, MovieRatingSerializer,
     OnlineCinemaSerializer, MovieOnlineCinemaSerializer
 )
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 
 # Фильтры для фильмов
@@ -54,19 +63,124 @@ class ShowtimeFilter(filters.FilterSet):
         fields = ['min_price', 'max_price', 'date']
 
 
-# ViewSet для модели Movie
+@extend_schema_view(
+    list=extend_schema(
+        description='Получить список фильмов',
+        parameters=[
+            OpenApiParameter(
+                name='search',
+                type=OpenApiTypes.STR,
+                description='Поиск по названию или описанию'
+            ),
+            OpenApiParameter(
+                name='release_date_start',
+                type=OpenApiTypes.DATE,
+                description='Фильтр по дате релиза (начало)'
+            ),
+            OpenApiParameter(
+                name='release_date_end',
+                type=OpenApiTypes.DATE,
+                description='Фильтр по дате релиза (конец)'
+            ),
+        ],
+        responses={200: MovieSerializer(many=True)}
+    ),
+    retrieve=extend_schema(
+        description='Получить детальную информацию о фильме',
+        responses={200: MovieSerializer}
+    ),
+    create=extend_schema(
+        description='Создать новый фильм',
+        request=MovieSerializer,
+        responses={201: MovieSerializer}
+    ),
+    update=extend_schema(
+        description='Обновить информацию о фильме',
+        request=MovieSerializer,
+        responses={200: MovieSerializer}
+    ),
+    destroy=extend_schema(
+        description='Удалить фильм',
+        responses={204: None}
+    )
+)
 class MovieViewSet(CacheMixin, viewsets.ModelViewSet):
-    queryset = Movie.objects.all()  # Получаем все фильмы
-    serializer_class = MovieSerializer  # Используем сериализатор для фильмов
-    pagination_class = CustomPagination  # Применяем нашу кастомную пагинацию
-    filter_backends = [SearchFilter, filters.DjangoFilterBackend]  # Подключаем фильтрацию
-    search_fields = ['title', 'description']  # Поля для поиска
-    filterset_class = MovieFilter  # Подключаем фильтр
+    """ViewSet для работы с фильмами."""
+    queryset = Movie.objects.all()
+    serializer_class = MovieSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = ['title', 'description']
+    filterset_class = MovieFilter
 
-    # 1. Получить фильмы, выпущенные до указанной даты
+    @action(methods=['GET'], detail=False, url_path='latest')
+    def latest_movies(self, request):
+        """Получить последние фильмы в прокате"""
+        movies = Movie.objects.filter(
+            status='now'
+        ).order_by('-release_date')[:5]
+        serializer = self.get_serializer(movies, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['GET'], detail=False, url_path='recommendations')
+    def user_recommendations(self, request):
+        """Получить рекомендации для пользователя"""
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        # Получаем жанры, которые нравятся пользователю
+        favorite_genres = Movie.objects.filter(
+            movierating__user=request.user, 
+            movierating__rating__gte=7
+        ).values_list('genres__id', flat=True)
+        
+        # Рекомендуем фильмы этих жанров
+        movies = Movie.objects.filter(
+            genres__id__in=favorite_genres
+        ).exclude(
+            movierating__user=request.user
+        ).distinct()[:5]
+        
+        serializer = self.get_serializer(movies, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['GET'], detail=False, url_path='not-rated')
+    def not_rated(self, request):
+        """Получить фильмы, которые пользователь еще не оценил"""
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        movies = Movie.objects.exclude(
+            movierating__user=request.user
+        ).order_by('-release_date')
+        
+        return self.get_paginated_response(
+            self.get_serializer(
+                self.paginate_queryset(movies), 
+                many=True
+            ).data
+        )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='date',
+                type=OpenApiTypes.DATE,
+                location=OpenApiParameter.QUERY,
+                description='Дата для фильтрации'
+            )
+        ],
+        responses={200: MovieSerializer(many=True)}
+    )
     @action(methods=['GET'], detail=False, url_path='released-before')
     def released_before(self, request):
-
+        """Получить фильмы, выпущенные до указанной даты"""
         release_date = request.query_params.get('date')
         if not release_date:
             return Response({'error': 'date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -96,12 +210,13 @@ class MovieViewSet(CacheMixin, viewsets.ModelViewSet):
         return Response({'message': 'Title updated successfully'}, status=status.HTTP_200_OK)
 
     def get_queryset(self):
-
-        queryset = super().get_queryset()
-        title = self.request.query_params.get('title')
-        if title:
-            queryset = queryset.filter(title__icontains=title)
-        return self.get_cached_queryset(queryset)
+        return Movie.objects.select_related(
+            'director'
+        ).prefetch_related(
+            'genres',
+            'actors',
+            Prefetch('movierating_set', queryset=MovieRating.objects.select_related('user'))
+        )
 
     @action(methods=['GET'], detail=False, url_path='search-movies')
     def search_movies(self, request):
@@ -162,6 +277,71 @@ class MovieViewSet(CacheMixin, viewsets.ModelViewSet):
             movie.title,
             'admin@example.com'  # Можно заменить на список email'ов подписчиков
         )
+
+    @action(methods=['GET'], detail=False, url_path='trending')
+    def trending_movies(self, request):
+        """Возвращает популярные фильмы"""
+        movies = Movie.objects.filter(
+            status='now'
+        ).annotate(
+            rating_count=Count('movierating')
+        ).filter(
+            rating_count__gt=0
+        ).order_by('-average_rating')[:5]
+        
+        serializer = self.get_serializer(movies, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['GET'], detail=False, url_path='by-genre')
+    def movies_by_genre(self, request):
+        """Группировка фильмов по жанрам с подсчетом"""
+        genres = Genre.objects.annotate(
+            movie_count=Count('movies'),
+            avg_rating=Avg('movies__average_rating')
+        )
+        
+        data = [{
+            'genre': genre.name,
+            'movie_count': genre.movie_count,
+            'average_rating': genre.avg_rating
+        } for genre in genres]
+        
+        return Response(data)
+    
+    @action(methods=['GET'], detail=False)
+    def exclude_genres(self, request):
+        genre_ids = request.query_params.getlist('genres')
+        queryset = Movie.objects.exclude(genres__id__in=genre_ids)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+            
+        except EmptyPage:
+            return Response({
+                'error': 'Page number is out of range',
+                'results': []
+            }, status=status.HTTP_404_NOT_FOUND)
+        except PageNotAnInteger:
+            return Response({
+                'error': 'Invalid page number',
+                'results': []
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                'error': f'An error occurred: {str(e)}',
+                'results': []
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ViewSet для модели Cinema
@@ -452,7 +632,13 @@ class MovieRatingViewSet(CacheMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# ViewSet для модели OnlineCinema
+@extend_schema_view(
+    list=extend_schema(description='Получить список онлайн-кинотеатров'),
+    retrieve=extend_schema(description='Получить детальную информацию об онлайн-кинотеатре'),
+    create=extend_schema(description='Добавить новый онлайн-кинотеатр'),
+    update=extend_schema(description='Обновить информацию об онлайн-кинотеатре'),
+    destroy=extend_schema(description='Удалить онлайн-кинотеатр')
+)
 class OnlineCinemaViewSet(viewsets.ModelViewSet):
     queryset = OnlineCinema.objects.all()
     serializer_class = OnlineCinemaSerializer
@@ -460,9 +646,20 @@ class OnlineCinemaViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     search_fields = ['name', 'url']
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='movie_id',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='ID фильма для поиска платформ'
+            )
+        ],
+        description='Получить список онлайн-кинотеатров для конкретного фильма'
+    )
     @action(methods=['GET'], detail=False, url_path='by-movie')
     def by_movie(self, request):
-
+        """Получить список онлайн-кинотеатров для конкретного фильма"""
         movie_id = request.query_params.get('movie_id')
         if not movie_id:
             return Response(
@@ -472,22 +669,15 @@ class OnlineCinemaViewSet(viewsets.ModelViewSet):
         online_cinemas = self.queryset.filter(
             movieonlinecinema__movie_id=movie_id)
         serializer = self.get_serializer(online_cinemas, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(methods=['GET'], detail=False, url_path='search-platforms')
-    def search_platforms(self, request):
-
-        query = request.query_params.get('q', '')
-        exclude_domain = request.query_params.get('exclude_domain', '')
-        platforms = OnlineCinema.objects.filter(
-            (Q(name__icontains=query) | Q(url__icontains=query))
-            & ~Q(url__icontains=exclude_domain)
-        )
-        serializer = self.get_serializer(platforms, many=True)
         return Response(serializer.data)
 
-
-# ViewSet для модели MovieOnlineCinema
+@extend_schema_view(
+    list=extend_schema(description='Получить список связей фильмов с онлайн-кинотеатрами'),
+    retrieve=extend_schema(description='Получить детальную информацию о связи'),
+    create=extend_schema(description='Создать новую связь'),
+    update=extend_schema(description='Обновить связь'),
+    destroy=extend_schema(description='Удалить связь')
+)
 class MovieOnlineCinemaViewSet(viewsets.ModelViewSet):
     queryset = MovieOnlineCinema.objects.all()
     serializer_class = MovieOnlineCinemaSerializer
@@ -495,9 +685,20 @@ class MovieOnlineCinemaViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     search_fields = ['movie__title', 'online_cinema__name']
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='movie_id',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='ID фильма для поиска доступных платформ'
+            )
+        ],
+        description='Получить список доступных платформ для конкретного фильма'
+    )
     @action(methods=['GET'], detail=False, url_path='available-platforms')
     def available_platforms(self, request):
-
+        """Получить список доступных платформ для конкретного фильма"""
         movie_id = request.query_params.get('movie_id')
         if not movie_id:
             return Response(
@@ -506,4 +707,42 @@ class MovieOnlineCinemaViewSet(viewsets.ModelViewSet):
             )
         platforms = self.queryset.filter(movie_id=movie_id)
         serializer = self.get_serializer(platforms, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
+
+
+# Регистрация нового пользователя
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('movie-list')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+# Профиль пользователя с избранными фильмами
+@login_required
+def profile(request):
+    favorite_movies = Movie.objects.filter(favorite__user=request.user)
+    rated_movies = Movie.objects.filter(movierating__user=request.user)
+    context = {
+        'favorite_movies': favorite_movies,
+        'rated_movies': rated_movies
+    }
+    return render(request, 'showcase/profile.html', context)
+
+# Защищенное представление для добавления фильма в избранное
+class AddToFavoriteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        movie = get_object_or_404(Movie, pk=pk)
+        Favorite.objects.get_or_create(user=request.user, movie=movie)
+        return redirect('movie-detail', pk=pk)
+
+@api_view(['GET'])
+def movie_detail_view(request, movie_id):
+    """Получить детальную информацию о фильме"""
+    movie = get_object_or_404(Movie, id=movie_id)
+    serializer = MovieSerializer(movie)
+    return Response(serializer.data)

@@ -3,26 +3,136 @@ from simple_history.models import HistoricalRecords
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from datetime import timedelta
+from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
+from PIL import Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import io
+from django.urls import reverse
+
+
+
+# Определяем менеджер до его использования
+class PublishedManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status='published')
 
 
 # Оригинальные модели
 class Movie(models.Model):
-    title = models.CharField(max_length=255)
-    release_date = models.DateField()
-    duration = models.IntegerField()  # Длительность в минутах
+    STATUS_CHOICES = [
+        ('soon', 'Upcoming'),    # Еще не вышел
+        ('now', 'Theaters'),  # Сейчас в кинотеатрах
+        ('end', 'Ended')         # Прокат закончен
+    ]
+    
+    title = models.CharField(max_length=200)
     description = models.TextField()
+    release_date = models.DateField()
+    duration = models.PositiveIntegerField()  # в минутах
     poster = models.ImageField(upload_to='posters/', blank=True, null=True)
-    genres = models.ManyToManyField('Genre', related_name='movies')  # Связь с жанрами
-    history = HistoricalRecords()  # Исторические записи изменений
+    trailer_video = models.FileField(
+        upload_to='trailers/',
+        null=True,
+        blank=True,
+        help_text='Upload movie trailer (MP4, MOV)',
+        validators=[FileExtensionValidator(allowed_extensions=['mp4', 'mov'])]
+    )
+    genres = models.ManyToManyField('Genre', related_name='movies')
     average_rating = models.FloatField(default=0.0)
+    total_ratings = models.PositiveIntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='soon'
+    )
+    history = HistoricalRecords()
+    actors = models.ManyToManyField(
+        'Actor',
+        through='MovieActor',
+        through_fields=('movie', 'actor'),
+        related_name='acted_in_movies'
+    )
+    subtitle_file = models.FileField(
+        upload_to='subtitles/',
+        null=True,
+        blank=True,
+        help_text='Upload SRT or VTT subtitle file'
+    )
+
+    objects = models.Manager()
+    published = PublishedManager()
+
+    def calculate_status(self):
+        try:
+            today = timezone.now().date()
+            theatrical_run = timedelta(days=30)
+            end_date = self.release_date + theatrical_run
+            
+            if self.release_date > today:
+                return 'soon'
+            elif today <= end_date:
+                return 'now'
+            else:
+                return 'end'
+        except Exception as e:
+            print(f"Error calculating status for movie {self.title}: {str(e)}")
+            return 'soon'
+
+    def save(self, *args, **kwargs):
+        # Обработка статуса
+        if not self.pk:
+            self.status = self.calculate_status()
+
+        # Обработка изображения при загрузке
+        if self.poster and isinstance(self.poster, InMemoryUploadedFile):
+            img = Image.open(self.poster)
+            
+            # Изменяем размер, сохраняя пропорции
+            max_size = (800, 800)
+            img.thumbnail(max_size, Image.LANCZOS)
+            
+            # Конвертируем в JPEG для уменьшения размера
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Сохраняем обработанное изображение
+            output = io.BytesIO()
+            img.save(output, format='JPEG', quality=85)
+            output.seek(0)
+            
+            # Обновляем поле poster
+            self.poster = InMemoryUploadedFile(
+                output,
+                'ImageField',
+                f"{self.poster.name.split('.')[0]}.jpg",
+                'image/jpeg',
+                output.getbuffer().nbytes,
+                None
+            )
+
+        super().save(*args, **kwargs)
+
+    def update_status(self):
+        try:
+            new_status = self.calculate_status()
+            if self.status != new_status:
+                self.status = new_status
+                self.save(update_fields=['status'])
+        except Exception as e:
+            print(f"Error updating status for movie {self.title}: {str(e)}")
+
+    def get_absolute_url(self):
+        return reverse('movie-detail', kwargs={'pk': self.pk})
 
     def __str__(self):
         return self.title
 
-    # Пример валидации для даты релиза фильма
-    def clean(self):
-        if self.release_date > timezone.now().date():
-            raise ValidationError('Release date cannot be in the future.')
+    class Meta:
+        verbose_name = 'Movie'
+        verbose_name_plural = 'Movies'
+        ordering = ['-release_date']
 
 
 class Cinema(models.Model):
@@ -37,6 +147,11 @@ class Cinema(models.Model):
     def clean(self):
         if Cinema.objects.filter(address=self.address).exists():
             raise ValidationError('Cinema with this address already exists.')
+
+    class Meta:
+        verbose_name = 'Cinema'
+        verbose_name_plural = 'Cinemas'
+        ordering = ['name']
 
 
 class Showtime(models.Model):
@@ -60,7 +175,7 @@ class Actor(models.Model):
     name = models.CharField(max_length=255)
     date_of_birth = models.DateField()
     biography = models.TextField()
-    movies = models.ManyToManyField('Movie', related_name='actors')
+    movies = models.ManyToManyField('Movie', related_name='movie_actors', blank=True)
     history = HistoricalRecords()
 
     def __str__(self):
@@ -70,6 +185,11 @@ class Actor(models.Model):
     def clean(self):
         if self.date_of_birth > timezone.now().date():
             raise ValidationError('Date of birth cannot be in the future.')
+
+    class Meta:
+        verbose_name = 'Actor'
+        verbose_name_plural = 'Actors'
+        ordering = ['name']
 
 
 # Модель для жанров
@@ -98,11 +218,24 @@ class Favorite(models.Model):
 class MovieRating(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    rating = models.PositiveIntegerField()  # Оценка от 1 до 10
+    rating = models.PositiveIntegerField(
+        validators=[
+            MinValueValidator(1, 'Rating cannot be less than 1'),
+            MaxValueValidator(10, 'Rating cannot be greater than 10')
+        ]
+    )
     history = HistoricalRecords()
 
     class Meta:
         unique_together = ('movie', 'user')
+
+    def clean(self):
+        if self.rating < 1 or self.rating > 10:
+            raise ValidationError('Rating must be between 1 and 10')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'Rating for {self.movie.title} by {self.user.username}: {self.rating}'
@@ -150,3 +283,13 @@ class UserVisit(models.Model):
 
     def __str__(self):
         return f'{self.user or "Anonymous"} - {self.path} at {self.timestamp}'
+
+
+class MovieActor(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
+    role = models.CharField(max_length=100)
+    is_main_role = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ['movie', 'actor']

@@ -97,3 +97,26 @@ def update_movie_statistics():
         {'=' * 50}
         ''')
         return f'Статистика обновлена для {len(movies)} фильмов'
+
+
+@shared_task
+def update_movie_statuses():
+    movies = Movie.objects.all()
+    updated_count = 0
+    
+    for movie in movies:
+        old_status = movie.status
+        movie.update_status()
+        if old_status != movie.status:
+            updated_count += 1
+            print(f'''
+            {'=' * 50}
+            🎬 Обновлен статус фильма:
+            📽 Название: {movie.title}
+            📅 Дата релиза: {movie.release_date}
+            🔄 Старый статус: {old_status}
+            ✨ Новый статус: {movie.status}
+            {'=' * 50}
+            ''')
+    
+    return f'Обновлены статусы для {updated_count} фильмов'

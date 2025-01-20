@@ -51,12 +51,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'showcase',
-    'import_export',
-    'simple_history',
     'rest_framework',
     'django_filters',
     'drf_spectacular',
+    'showcase',
+    'simple_history',
+    'django_celery_results',
+    'django_celery_beat',
+    'import_export',
+    'debug_toolbar',
 ]
 
 # Изменение заголовка админки
@@ -65,6 +68,7 @@ ADMIN_SITE_TITLE = 'PopcornHub Admin Portal'
 ADMIN_INDEX_TITLE = 'Welcome to PopcornHub Admin Portal'
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -98,16 +102,35 @@ WSGI_APPLICATION = 'popcornhub.wsgi.application'
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,  # Значение по умолчанию, если не указано в запросе
-    'PAGE_SIZE_QUERY_PARAM': 'page_size',  # Параметр, который будет использоваться в запросах
+    'PAGE_SIZE': 10,
+    'PAGE_SIZE_QUERY_PARAM': 'page_size',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'PopcornHub API',
-    'DESCRIPTION': 'API для управления кинотеатрами и фильмами',
+    'DESCRIPTION': 'API для сервиса кинотеатров PopcornHub',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': False,
+    },
+    'REDOC_UI_SETTINGS': {
+        'hideDownloadButton': True,
+        'expandResponses': '200,201',
+    },
+    'TAGS': [
+        {'name': 'movies', 'description': 'Операции с фильмами'},
+        {'name': 'cinemas', 'description': 'Операции с кинотеатрами'},
+        {'name': 'ratings', 'description': 'Операции с рейтингами'},
+    ],
+    'ENUM_NAME_OVERRIDES': {
+        'MovieStatusEnum': 'showcase.models.Movie.STATUS_CHOICES',
+    }
 }
 
 # Database
@@ -226,3 +249,23 @@ LOGGING = {
 
 # Создаем директорию для логов при запуске
 os.makedirs(os.path.join(BASE_DIR, 'userLogs'), exist_ok=True)
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+}
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG
+}

@@ -42,7 +42,7 @@ def debug_task(self):
 app.conf.beat_schedule = {
     'demo-task-every-5-seconds': {
         'task': 'showcase.tasks.periodic_task_demo',
-        'schedule': timedelta(seconds=5),
+        'schedule': timedelta(seconds=60),
     },
     'send-email-every-minute': {
         'task': 'showcase.tasks.send_email_task',
@@ -51,5 +51,9 @@ app.conf.beat_schedule = {
     'update-movie-stats-every-minute': {
         'task': 'showcase.tasks.update_movie_statistics',
         'schedule': timedelta(minutes=1),
+    },
+    'update-movie-statuses-every-hour': {
+        'task': 'showcase.tasks.update_movie_statuses',
+        'schedule': timedelta(hours=1),
     },
 }
