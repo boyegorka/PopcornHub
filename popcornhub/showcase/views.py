@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.core.paginator import EmptyPage, PageNotAnInteger
+from django.utils import timezone
 
 from .mixins import CacheMixin
 
@@ -748,13 +749,29 @@ def movie_detail_view(request, movie_id):
     return Response(serializer.data)
 
 def index(request):
-    latest_movies = Movie.objects.filter(status='now').order_by('-release_date')[:6]
-    trending_movies = Movie.objects.filter(status='now').order_by('-average_rating')[:6]
-    upcoming_movies = Movie.objects.filter(status='soon').order_by('release_date')[:6]
+    today = timezone.now().date()
+    
+    # Получаем фильмы с рейтингом 8+ и с постерами
+    top_rated_movies = Movie.objects.filter(
+        average_rating__gte=8.0,
+        poster__isnull=False
+    ).order_by('-average_rating')[:9]
+    
+    # Получаем фильмы, которые сейчас в прокате
+    latest_movies = Movie.objects.filter(
+        status='now',
+        poster__isnull=False
+    ).order_by('-release_date')[:4]
+    
+    # Получаем предстоящие фильмы
+    upcoming_movies = Movie.objects.filter(
+        status='soon',
+        release_date__gt=today
+    ).order_by('release_date')[:6]
     
     context = {
+        'top_rated_movies': top_rated_movies,
         'latest_movies': latest_movies,
-        'trending_movies': trending_movies,
         'upcoming_movies': upcoming_movies,
     }
     return render(request, 'showcase/index.html', context)

@@ -47,5 +47,46 @@
     <script src="{% static 'assets/js/tabs.js' %}"></script>
     <script src="{% static 'assets/js/popup.js' %}"></script>
     <script src="{% static 'assets/js/custom.js' %}"></script>
+
+    <script>
+    function updateBanner(movieElement) {
+        // Обновляем фоновое изображение из постера фильма
+        const posterImg = movieElement.querySelector('.thumb img');
+        if (posterImg && posterImg.src) {
+            const mainBanner = document.querySelector('.main-banner');
+            mainBanner.style.backgroundImage = `url('${posterImg.src}')`;
+            console.log("Updating banner image to:", posterImg.src);
+        }
+
+        // Обновляем информацию в баннере
+        const title = movieElement.querySelector('.content h4').textContent;
+        const description = movieElement.querySelector('.content ul').innerHTML;
+        const rating = movieElement.querySelector('.content .rating').innerHTML;
+
+        document.querySelector('.main-banner .header-text h2').innerHTML = title;
+        document.querySelector('.main-banner .movie-info').innerHTML = description;
+        document.querySelector('.main-banner .rating-display').innerHTML = rating;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Используем конкретный id карусели
+        const topRatedCarousel = document.getElementById('topRatedCarousel');
+        if (!topRatedCarousel) return;
+
+        // Инициализация для первого слайда
+        const firstSlide = topRatedCarousel.querySelector('.item');
+        if (firstSlide) {
+            updateBanner(firstSlide);
+        }
+
+        // Обновление при смене слайда в карусели
+        $('#topRatedCarousel').on('translated.owl.carousel', function(event) {
+            const currentSlide = $(event.target).find('.owl-item.active').first().find('.item');
+            if (currentSlide.length) {
+                updateBanner(currentSlide[0]);
+            }
+        });
+    });
+    </script>
 </body>
 </html>
