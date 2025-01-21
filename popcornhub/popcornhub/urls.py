@@ -45,6 +45,7 @@ router.register(r'online-cinemas', OnlineCinemaViewSet)
 router.register(r'movie-online-cinemas', MovieOnlineCinemaViewSet)
 
 urlpatterns = [
+    path('', include('showcase.urls')),
     path('admin/', admin.site.urls),  # Админка
     path('api/', include(router.urls)),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

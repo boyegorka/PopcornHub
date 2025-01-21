@@ -746,3 +746,15 @@ def movie_detail_view(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     serializer = MovieSerializer(movie)
     return Response(serializer.data)
+
+def index(request):
+    latest_movies = Movie.objects.filter(status='now').order_by('-release_date')[:6]
+    trending_movies = Movie.objects.filter(status='now').order_by('-average_rating')[:6]
+    upcoming_movies = Movie.objects.filter(status='soon').order_by('release_date')[:6]
+    
+    context = {
+        'latest_movies': latest_movies,
+        'trending_movies': trending_movies,
+        'upcoming_movies': upcoming_movies,
+    }
+    return render(request, 'showcase/index.html', context)
