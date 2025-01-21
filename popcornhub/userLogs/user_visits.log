@@ -3006,3 +3006,11 @@ LINE 1: INSERT INTO "auth_uservisit" ("user_id", "path", "method", "...
 2025-01-21 04:14:30,436 | INFO | User: admin | Path: / | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
 2025-01-21 04:14:39,357 | INFO | User: admin | Path: /profile/ | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
 2025-01-21 04:14:46,603 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-21 04:33:55,480 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-21 04:34:25,607 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-21 04:34:55,727 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-21 04:35:11,660 | INFO | User: admin | Path: / | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-21 04:35:25,826 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-21 04:35:55,136 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
+2025-01-21 04:36:00,547 | INFO | User: admin | Path: / | Method: GET | IP: 172.18.0.1 | User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+2025-01-21 04:36:25,244 | INFO | User: Anonymous | Path: /admin/login/ | Method: GET | IP: 127.0.0.1 | User Agent: curl/7.88.1
