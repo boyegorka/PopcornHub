@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load movie_filters %}
+
+{% block content %}
+<div class="page-heading">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="heading-content">
+                    <h2 style="color: #2a2a2a;">{{ movie.title }}</h2>
+                    <div class="rating-info" style="color: #2a2a2a;">
+                        {{ movie.average_rating|rating_stars_10|safe }}
+                        <span style="margin-left: 10px;">{{ movie.average_rating|floatformat:1 }}/10</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="photos-page" style="padding: 60px 0;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="movie-poster" style="margin-bottom: 30px;">
+                    {% if movie.poster %}
+                        <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" class="img-fluid" style="border-radius: 15px;">
+                    {% endif %}
+                </div>
+                <div class="movie-actions">
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'showcase:rate-movie' movie.id %}" class="rating-form" style="margin-bottom: 20px;">
+                            {% csrf_token %}
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="color: #2a2a2a; display: block; margin-bottom: 10px;">Ваша оценка:</label>
+                                <select name="rating" class="form-control" style="margin-bottom: 15px;">
+                                    <option value="1">1/10</option>
+                                    <option value="2">2/10</option>
+                                    <option value="3">3/10</option>
+                                    <option value="4">4/10</option>
+                                    <option value="5">5/10</option>
+                                    <option value="6">6/10</option>
+                                    <option value="7">7/10</option>
+                                    <option value="8">8/10</option>
+                                    <option value="9">9/10</option>
+                                    <option value="10">10/10</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="main-button" style="width: 100%;">Оценить</button>
+                        </form>
+                        <form method="post" action="{% url 'showcase:add-to-favorite' movie.id %}" style="margin-bottom: 20px;">
+                            {% csrf_token %}
+                            <button type="submit" class="main-button" style="width: 100%;">
+                                {% if is_favorite %}
+                                    Убрать из избранного
+                                {% else %}
+                                    Добавить в избранное
+                                {% endif %}
+                            </button>
+                        </form>
+                    {% else %}
+                        <p style="color: #2a2a2a;">Войдите, чтобы оценить фильм и добавить в избранное</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="movie-info" style="background: #fff; padding: 30px; border-radius: 15px;">
+                    <div class="info-item" style="margin-bottom: 40px;">
+                        <h4 style="color: #2a2a2a; margin-bottom: 20px;">О фильме</h4>
+                        <p style="color: #2a2a2a; line-height: 1.7;">{{ movie.description }}</p>
+                    </div>
+                    <div class="info-item" style="margin-bottom: 40px;">
+                        <h4 style="color: #2a2a2a; margin-bottom: 20px;">Детали</h4>
+                        <ul style="color: #2a2a2a; list-style: none; padding: 0;">
+                            <li style="margin-bottom: 15px;">Дата выхода: {{ movie.release_date }}</li>
+                            <li style="margin-bottom: 15px;">Длительность: {{ movie.duration|duration_format }}</li>
+                            <li style="margin-bottom: 15px;">Статус: {{ movie.get_status_display }}</li>
+                            <li style="margin-bottom: 15px;">Жанры: 
+                                {% for genre in movie.genres.all %}
+                                    {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="info-item" style="margin-bottom: 40px;">
+                        <h4 style="color: #2a2a2a; margin-bottom: 20px;">Актеры</h4>
+                        <div class="row">
+                            {% for actor in movie.actors.all %}
+                                <div class="col-lg-4 col-md-6 mb-4">
+                                    <div class="actor-card" style="text-align: center;">
+                                        {% if actor.photo %}
+                                            <img src="{{ actor.photo.url }}" alt="{{ actor.name }}" class="img-fluid" style="border-radius: 10px; margin-bottom: 10px;">
+                                        {% endif %}
+                                        <h5 style="color: #2a2a2a;">{{ actor.name }}</h5>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p style="color: #2a2a2a;">Информация об актерах отсутствует</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if movie.trailer_video %}
+                        <div class="info-item">
+                            <h4 style="color: #2a2a2a; margin-bottom: 20px;">Трейлер</h4>
+                            <video controls class="w-100" style="border-radius: 10px;">
+                                <source src="{{ movie.trailer_video.url }}" type="video/mp4">
+                                Ваш браузер не поддерживает видео.
+                            </video>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-heading {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 100px 0;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+{% if movie.poster %}
+.page-heading {
+    background-image: url('{{ movie.poster.url }}');
+}
+
+.page-heading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+}
+{% endif %}
+
+.heading-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.form-control {
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.info-item ul li {
+    position: relative;
+    padding-left: 0;
+}
+</style>
+{% endblock %} 

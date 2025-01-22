@@ -1,0 +1,27 @@
+{% load static %}
+
+<section class="pricing-plans">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-heading text-center">
+                    <h6>Онлайн-кинотеатры</h6>
+                    <h4>Выберите свой <em>любимый</em> стриминговый <em>сервис</em></h4>
+                </div>
+            </div>
+            {% for service in streaming_services %}
+                <div class="col-lg-4 mb-4">
+                    <div class="pricing-item mx-4">
+                        <div class="icon">
+                            <img src="{% static 'assets/images/service-icon.png' %}" alt="">
+                        </div>
+                        <h4>{{ service.name }}</h4>
+                        <div class="border-button">
+                            <a href="{{ service.url }}" target="_blank">Смотреть</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section> 

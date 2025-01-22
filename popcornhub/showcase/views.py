@@ -6,14 +6,19 @@ from django_filters import rest_framework as filters
 from django.core.cache import cache
 from termcolor import colored  # Добавим цветной вывод для наглядности
 from rest_framework.response import Response
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.core.paginator import EmptyPage, PageNotAnInteger
 from django.utils import timezone
+from django.http import HttpResponseRedirect, JsonResponse
+from django.urls import reverse
+from django.contrib import messages
+from datetime import timedelta
+from django.contrib.admin.views.decorators import staff_member_required
 
 from .mixins import CacheMixin
 
@@ -31,6 +36,7 @@ from .serializers import (
 )
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
+from .forms import MovieForm, CustomUserCreationForm, CustomAuthenticationForm
 
 
 # Фильтры для фильмов
@@ -424,7 +430,11 @@ class ShowtimeViewSet(viewsets.ModelViewSet):
             print(message)
             print(f'Cache key: {cache_key}')
             print('=' * 50 + '\n')
-            return Response(cached_result, status=status.HTTP_200_OK)
+            showtimes = self.queryset.filter(start_time__date=date)
+            serializer = self.get_serializer(showtimes, many=True)
+            # Кешируем результат на 15 минут
+            cache.set(cache_key, serializer.data, timeout=900)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         message = colored('🔄 Расписание загружается из БАЗЫ ДАННЫХ', 'yellow', attrs=['bold'])
         print('\n' + '=' * 50)
         print(message)
@@ -712,25 +722,34 @@ class MovieOnlineCinemaViewSet(viewsets.ModelViewSet):
 
 
 # Регистрация нового пользователя
-def register(request):
+def register_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('movie-list')
+            messages.success(request, "Регистрация успешна!")
+            return redirect('showcase:index')
+        else:
+            messages.error(request, "Ошибка при регистрации. Пожалуйста, проверьте данные.")
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
 # Профиль пользователя с избранными фильмами
 @login_required
 def profile(request):
-    favorite_movies = Movie.objects.filter(favorite__user=request.user)
-    rated_movies = Movie.objects.filter(movierating__user=request.user)
+    # Получаем избранные фильмы
+    favorite_movies = Movie.objects.filter(movie_favorites__user=request.user)
+    
+    # Получаем все оценки пользователя
+    user_ratings = MovieRating.objects.filter(
+        user=request.user
+    ).select_related('movie').order_by('-id')  # Сортируем по id, так как created_at пока нет
+    
     context = {
         'favorite_movies': favorite_movies,
-        'rated_movies': rated_movies
+        'user_ratings': user_ratings,
     }
     return render(request, 'showcase/profile.html', context)
 
@@ -743,35 +762,253 @@ class AddToFavoriteView(LoginRequiredMixin, View):
 
 @api_view(['GET'])
 def movie_detail_view(request, movie_id):
-    """Получить детальную информацию о фильме"""
-    movie = get_object_or_404(Movie, id=movie_id)
+    """API endpoint для получения деталей фильма"""
+    movie = get_object_or_404(
+        Movie.objects.prefetch_related('actors'),  # Убедимся, что актеры загружаются
+        id=movie_id
+    )
     serializer = MovieSerializer(movie)
+    print("API Response:", serializer.data)  # Добавим отладочный вывод
     return Response(serializer.data)
 
 def index(request):
-    today = timezone.now().date()
+    online_cinemas = OnlineCinema.objects.all()
+    return render(request, 'showcase/index.html', {
+        'online_cinemas': online_cinemas
+    })
+
+def movie_create(request):
+    if request.method == 'POST':
+        form = MovieForm(request.POST, request.FILES)
+        if form.is_valid():
+            movie = form.save()
+            return HttpResponseRedirect(reverse('showcase:movie-detail', args=[movie.id]))
+    else:
+        form = MovieForm()
     
-    # Получаем фильмы с рейтингом 8+ и с постерами
-    top_rated_movies = Movie.objects.filter(
-        average_rating__gte=8.0,
-        poster__isnull=False
-    ).order_by('-average_rating')[:9]
+    return render(request, 'showcase/movie_form.html', {'form': form})
+
+def movie_update(request, pk):
+    movie = get_object_or_404(Movie, pk=pk)
     
-    # Получаем фильмы, которые сейчас в прокате
-    latest_movies = Movie.objects.filter(
-        status='now',
-        poster__isnull=False
-    ).order_by('-release_date')[:4]
+    if request.method == 'POST':
+        form = MovieForm(request.POST, request.FILES, instance=movie)
+        if form.is_valid():
+            movie = form.save()
+            return HttpResponseRedirect(reverse('showcase:movie-detail', args=[movie.id]))
+    else:
+        form = MovieForm(instance=movie)
     
-    # Получаем предстоящие фильмы
-    upcoming_movies = Movie.objects.filter(
-        status='soon',
-        release_date__gt=today
-    ).order_by('release_date')[:6]
+    return render(request, 'showcase/movie_form.html', {
+        'form': form,
+        'movie': movie
+    })
+
+def movie_delete(request, pk):
+    movie = get_object_or_404(Movie, pk=pk)
+    
+    if request.method == 'POST':
+        movie.delete()
+        return HttpResponseRedirect(reverse('showcase:movie-list'))
+    
+    return render(request, 'showcase/movie_confirm_delete.html', {
+        'movie': movie
+    })
+
+def get_movie_stats(request):
+    # Используем exists()
+    has_movies = Movie.objects.filter(status='now').exists()
+    
+    if has_movies:
+        # Используем values() для получения статистики
+        stats = Movie.objects.values('status').annotate(
+            count=Count('id'),
+            avg_rating=Avg('average_rating'),
+            avg_duration=Avg('duration')
+        )
+        
+        # Получаем топ жанров
+        top_genres = Genre.objects.annotate(
+            movie_count=Count('movies')
+        ).values('name', 'movie_count').order_by('-movie_count')[:5]
+        
+        return render(request, 'showcase/movie_stats.html', {
+            'has_movies': has_movies,
+            'stats': stats,
+            'top_genres': top_genres
+        })
+    
+    return render(request, 'showcase/movie_stats.html', {'has_movies': has_movies})
+
+@staff_member_required
+def bulk_status_update(request):
+    if request.method == 'POST':
+        # Обновляем все фильмы старше 90 дней
+        old_movies = Movie.objects.filter(
+            release_date__lt=timezone.now() - timedelta(days=90),
+            status='now'
+        )
+        updated = old_movies.update(status='end')
+        
+        messages.success(request, f'Successfully updated {updated} movies.')
+        return redirect('showcase:movie-list')
+    
+    return render(request, 'showcase/bulk_update.html')
+
+def advanced_movie_search(request):
+    # Chaining filters с использованием __contains и __icontains
+    query = request.GET.get('q', '')
+    genre = request.GET.get('genre', '')
+    
+    movies = Movie.objects.all()
+    
+    if query:
+        movies = movies.filter(
+            Q(title__icontains=query) |  # Нечувствительный к регистру поиск
+            Q(description__contains=query)  # Чувствительный к регистру поиск
+        )
+    
+    if genre:
+        movies = movies.filter(genres__name__icontains=genre)
+    
+    # Limiting QuerySets
+    movies = movies[:50]  # Ограничиваем результат 50 фильмами
+    
+    # values_list() пример
+    movie_titles = movies.values_list('title', flat=True)
+    
+    # count() пример
+    total_count = movies.count()
+    
+    # exists() пример
+    has_results = movies.exists()
     
     context = {
-        'top_rated_movies': top_rated_movies,
-        'latest_movies': latest_movies,
-        'upcoming_movies': upcoming_movies,
+        'movies': movies,
+        'movie_titles': movie_titles,
+        'total_count': total_count,
+        'has_results': has_results,
+        'query': query,
+        'genre': genre
     }
-    return render(request, 'showcase/index.html', context)
+    
+    return render(request, 'showcase/movie_search.html', context)
+
+def batch_operations(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        selected_ids = request.POST.getlist('selected_movies')
+        
+        if selected_ids:
+            # Получаем QuerySet с выбранными фильмами
+            selected_movies = Movie.objects.filter(id__in=selected_ids)
+            
+            if action == 'update_status':
+                # update() пример
+                new_status = request.POST.get('new_status')
+                updated = selected_movies.update(status=new_status)
+                messages.success(request, f'Updated {updated} movies')
+            
+            elif action == 'delete':
+                # delete() пример
+                deleted_count = selected_movies.delete()[0]
+                messages.success(request, f'Deleted {deleted_count} movies')
+    
+    return redirect('showcase:movie-list')
+
+def login_view(request):
+    if request.method == 'POST':
+        form = CustomAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, f"Добро пожаловать, {username}!")
+                return redirect('showcase:index')
+    else:
+        form = CustomAuthenticationForm()
+    return render(request, 'registration/login.html', {'form': form})
+
+def logout_view(request):
+    logout(request)
+    messages.success(request, "Вы успешно вышли из системы!")
+    return redirect('showcase:index')
+
+@login_required
+def profile_view(request):
+    online_cinemas = OnlineCinema.objects.all()
+    return render(request, 'showcase/profile.html', {
+        'user': request.user,
+        'online_cinemas': online_cinemas
+    })
+
+def movie_actors(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+    actors = [{"name": actor.name} for actor in movie.actors.all()]
+    return JsonResponse({"actors": actors})
+
+@login_required
+def rate_movie(request, movie_id):
+    if request.method == 'POST':
+        movie = get_object_or_404(Movie, id=movie_id)
+        rating_value = int(request.POST.get('rating', 0))
+        if 1 <= rating_value <= 10:
+            # Создаем или обновляем оценку
+            rating, created = MovieRating.objects.update_or_create(
+                user=request.user,
+                movie=movie,
+                defaults={'rating': rating_value}
+            )
+            
+            # Пересчитываем среднюю оценку фильма
+            avg_rating = MovieRating.objects.filter(movie=movie).aggregate(Avg('rating'))['rating__avg']
+            movie.average_rating = avg_rating or 0
+            movie.total_ratings = MovieRating.objects.filter(movie=movie).count()
+            movie.save()
+            
+            messages.success(request, 'Ваша оценка сохранена!')
+        else:
+            messages.error(request, 'Некорректная оценка')
+    return redirect('showcase:movie-detail', movie_id=movie_id)
+
+@login_required
+def add_to_favorite(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+    if request.method == 'POST':
+        favorite, created = Favorite.objects.get_or_create(
+            user=request.user,
+            movie=movie
+        )
+        if not created:
+            favorite.delete()
+            messages.success(request, 'Фильм удален из избранного')
+        else:
+            messages.success(request, 'Фильм добавлен в избранное')
+    return redirect('showcase:movie-detail', movie_id=movie_id)
+
+def movie_detail(request, movie_id):
+    movie = get_object_or_404(Movie.objects.prefetch_related('actors', 'genres'), id=movie_id)
+    is_favorite = Favorite.objects.filter(user=request.user, movie=movie).exists() if request.user.is_authenticated else False
+    context = {
+        'movie': movie,
+        'is_favorite': is_favorite,
+    }
+    return render(request, 'showcase/movie_detail.html', context)
+
+@login_required
+def delete_rating(request, rating_id):
+    if request.method == 'POST':
+        rating = get_object_or_404(MovieRating, id=rating_id, user=request.user)
+        movie = rating.movie
+        rating.delete()
+        
+        # Пересчитываем среднюю оценку фильма
+        avg_rating = MovieRating.objects.filter(movie=movie).aggregate(Avg('rating'))['rating__avg']
+        movie.average_rating = avg_rating or 0
+        movie.total_ratings = MovieRating.objects.filter(movie=movie).count()
+        movie.save()
+        
+        messages.success(request, 'Оценка удалена')
+    return redirect('showcase:profile')

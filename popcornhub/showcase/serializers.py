@@ -18,7 +18,7 @@ class CinemaSerializer(serializers.ModelSerializer):
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
-        fields = ('id', 'name', 'date_of_birth', 'biography')
+        fields = ['id', 'name']
 
 @extend_schema_serializer(
     examples=[

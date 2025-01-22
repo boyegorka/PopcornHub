@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Расширенный поиск фильмов</h2>
+    
+    <form method="get" class="mb-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="q">Поиск по названию или описанию:</label>
+                    <input type="text" name="q" id="q" class="form-control" value="{{ query }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="genre">Жанр:</label>
+                    <input type="text" name="genre" id="genre" class="form-control" value="{{ genre }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary mt-4">Поиск</button>
+            </div>
+        </div>
+    </form>
+
+    {% if has_results %}
+        <h3>Найдено фильмов: {{ total_count }}</h3>
+        
+        <form method="post" action="{% url 'showcase:batch-operations' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <select name="action" class="form-select">
+                    <option value="update_status">Обновить статус</option>
+                    <option value="delete">Удалить</option>
+                </select>
+                <select name="new_status" class="form-select mt-2">
+                    <option value="soon">Скоро</option>
+                    <option value="now">В прокате</option>
+                    <option value="end">Завершен</option>
+                </select>
+                <button type="submit" class="btn btn-warning mt-2">Применить</button>
+            </div>
+            
+            <div class="row">
+                {% for movie in movies %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input type="checkbox" name="selected_movies" value="{{ movie.id }}" class="form-check-input">
+                                    <label class="form-check-label">{{ movie.title }}</label>
+                                </div>
+                                <p class="card-text">{{ movie.description|truncatewords:30 }}</p>
+                                <p class="card-text"><small class="text-muted">Статус: {{ movie.get_status_display }}</small></p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </form>
+        
+        <div class="mt-4">
+            <h4>Список названий:</h4>
+            <ul>
+                {% for title in movie_titles %}
+                    <li>{{ title }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            По вашему запросу ничего не найдено.
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

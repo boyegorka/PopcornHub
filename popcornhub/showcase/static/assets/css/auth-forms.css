@@ -1,0 +1,117 @@
+.user_login,
+.user_register {
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.user_login label,
+.user_register label {
+    color: #1e1e1e;
+    display: block;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.user_login input[type="text"],
+.user_login input[type="email"],
+.user_login input[type="password"],
+.user_register input[type="text"],
+.user_register input[type="email"],
+.user_register input[type="password"] {
+    display: block;
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    color: #1e1e1e;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+}
+
+.user_login input:focus,
+.user_register input:focus {
+    border-color: #0054f7;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 84, 247, 0.1);
+}
+
+.checkbox {
+    margin: 20px 0;
+}
+
+.checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.checkbox label {
+    display: inline-block;
+    vertical-align: middle;
+    color: #666;
+}
+
+.action_btns {
+    margin-top: 25px;
+}
+
+.btn_red {
+    background: #0054f7;
+    color: #fff;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 500;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn_red:hover {
+    background: #0043c4;
+}
+
+.forgot_password {
+    display: block;
+    text-align: center;
+    color: #666;
+    margin: 20px 0;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.forgot_password:hover {
+    color: #0054f7;
+}
+
+.centeredText {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.centeredText a {
+    color: #0054f7;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.centeredText a:hover {
+    text-decoration: underline;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+.alert-danger {
+    background-color: #ffe5e5;
+    border: 1px solid #ffcccc;
+    color: #cc0000;
+} 

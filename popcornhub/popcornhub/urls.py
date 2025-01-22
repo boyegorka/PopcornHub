@@ -20,6 +20,8 @@ from django.contrib import admin
 from django.urls import path, include  # include для маршрутов приложений
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from rest_framework import routers
+from django.contrib.auth import views as auth_views
+from showcase import views
 
 from showcase.views import (
     MovieViewSet,
@@ -45,8 +47,12 @@ router.register(r'online-cinemas', OnlineCinemaViewSet)
 router.register(r'movie-online-cinemas', MovieOnlineCinemaViewSet)
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path('', include('showcase.urls')),
-    path('admin/', admin.site.urls),  # Админка
+    # Явно указываем маршруты для аутентификации
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('api/', include(router.urls)),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

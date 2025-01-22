@@ -8,6 +8,10 @@ import csv
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from django.contrib import messages
+from django.urls import path
+from django.utils.timezone import timezone, timedelta
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
 
 from .resources import (
     MovieResource, CinemaResource, ShowtimeResource, ActorResource,
@@ -30,7 +34,15 @@ class MovieRatingInline(admin.TabularInline):
     model = MovieRating
     extra = 1
     fields = ['user', 'rating']
-    readonly_fields = ['user']
+    ordering = ['-rating']
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "user":
+            kwargs["queryset"] = User.objects.all().order_by('username')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).order_by('-rating')
 
 class ShowtimeInline(admin.TabularInline):
     model = Showtime
@@ -50,14 +62,15 @@ class MovieAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
         'average_rating',
         'get_status_display_colored',  # Добавляем статус
         'total_ratings',  # Добавляем количество оценок
-        'has_trailer'  # Добавляем флаг наличия трейлера
+        'has_trailer',  # Добавляем флаг наличия трейлера
+        'get_ratings_display'  # Добавляем отображение топ-3 рейтингов
     )
     search_fields = ('title', 'description')  # Поиск по названию и описанию фильма
     list_filter = ('release_date', 'genres__name', 'status')  # Фильтрация по дате релиза, жанру и статусу
     ordering = ('release_date',)  # Сортировка по дате выхода фильма
     resource_class = MovieResource
     readonly_fields = ('status', 'average_rating', 'total_ratings', 'last_updated')  # Делаем поля только для чтения
-    inlines = [MovieActorInline, MovieRatingInline]
+    inlines = [MovieRatingInline, MovieActorInline]
 
     def get_status_display_colored(self, obj):
         """Отображение статуса с цветовой индикацией"""
@@ -110,9 +123,11 @@ class MovieAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
         return True
 
     # Добавляем действие для ручного обновления статуса
-    actions = ['update_movie_statuses', 'export_as_pdf']
+    actions = ['update_statuses', 'export_as_pdf']
 
-    def update_movie_statuses(self, request, queryset):
+    @admin.action(description='Update movie statuses')
+    def update_statuses(self, request, queryset):
+        # Обновляем статусы для выбранных фильмов
         updated = 0
         for movie in queryset:
             old_status = movie.status
@@ -121,12 +136,10 @@ class MovieAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
                 updated += 1
         
         if updated:
-            self.message_user(request, f'Successfully updated {updated} movie statuses.')
+            self.message_user(request, f'Successfully updated {updated} movies.')
         else:
-            self.message_user(request, 'No status changes were needed.')
+            self.message_user(request, 'No movies were updated.', level=messages.WARNING)
     
-    update_movie_statuses.short_description = "Update selected movies' statuses"
-
     def export_as_pdf(self, request, queryset):
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="movies.pdf"'
@@ -164,6 +177,43 @@ class MovieAdmin(ExportActionModelAdmin, ExportMixin, SimpleHistoryAdmin):
                 messages.error(request, 'Trailer file is too large. Maximum size is 100MB.')
                 return
         super().save_model(request, obj, form, change)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('bulk-update/', self.admin_site.admin_view(self.bulk_status_update_view),
+                 name='showcase_movie_bulk_update'),
+        ]
+        return custom_urls + urls
+    
+    def bulk_status_update_view(self, request):
+        if request.method == 'POST':
+            # Обновляем все фильмы старше 90 дней
+            old_movies = Movie.objects.filter(
+                release_date__lt=timezone.now() - timedelta(days=90),
+                status='now'
+            )
+            updated = old_movies.update(status='end')
+            
+            self.message_user(request, f'Successfully updated {updated} movies.')
+            return redirect('..')
+        
+        return render(request, 'admin/showcase/movie/bulk_update.html')
+
+    def get_ratings_display(self, obj):
+        ratings = obj.ratings.select_related('user').order_by('-rating')[:3]  # Показываем топ-3 рейтинга
+        if not ratings:
+            return "Нет оценок"
+        
+        ratings_display = []
+        for rating in ratings:
+            ratings_display.append(
+                f"{rating.user.username}: {rating.rating}"
+            )
+        return mark_safe("<br>".join(ratings_display))
+    
+    get_ratings_display.short_description = "Топ рейтинги"
+    get_ratings_display.allow_tags = True
 
 
 # Админка для модели Cinema
@@ -216,12 +266,12 @@ class FavoriteAdmin(ExportMixin, SimpleHistoryAdmin):
 
 # Админка для модели MovieRating
 @admin.register(MovieRating)
-class MovieRatingAdmin(ExportMixin, SimpleHistoryAdmin):
-    list_display = ('movie', 'user', 'rating')  # Отображаем фильм, пользователя и рейтинг
-    search_fields = ('movie__title', 'user__username')  # Поиск по названию фильма и имени пользователя
-    list_filter = ('rating',)  # Фильтрация по рейтингу
-    ordering = ('movie',)  # Сортировка по фильму
-    resource_class = MovieRatingResource
+class MovieRatingAdmin(admin.ModelAdmin):
+    list_display = ['movie', 'user', 'rating']
+    list_filter = ['rating', 'movie']
+    search_fields = ['movie__title', 'user__username']
+    raw_id_fields = ['user', 'movie']
+    ordering = ['-rating']
 
 
 # Админка для модели OnlineCinema

@@ -142,6 +142,8 @@ class Command(BaseCommand):
                         movie=movie,
                         online_cinema=online_cinema
                     )
+            for movie in in_theaters_movies:
+                movie.update_status()
             self.stdout.write(self.style.SUCCESS('Successfully populated database'))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Error populating database: {str(e)}'))

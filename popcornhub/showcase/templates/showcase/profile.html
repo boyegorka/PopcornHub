@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load movie_filters %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'assets/css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h6>Профиль</h6>
+                <h2>Личный <em>кабинет</em></h2>
+                <span>Управляйте своим профилем и настройками</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="trending-page" style="padding-top: 60px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="top-streamers" style="margin-bottom: 40px;">
+                            <div class="heading-section" style="margin-bottom: 30px;">
+                                <h4>Информация</h4>
+                            </div>
+                            <ul>
+                                <li style="margin-bottom: 20px;">
+                                    <span style="font-size: 16px;"><i class="fa fa-user"></i> {{ user.username }}</span>
+                                </li>
+                                <li style="margin-bottom: 20px;">
+                                    <span style="font-size: 16px;"><i class="fa fa-envelope"></i> {{ user.email }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="gaming-library profile-library">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="heading-section">
+                                            <h4>Профиль {{ user.username }}</h4>
+                                        </div>
+
+                                        <!-- Избранные фильмы -->
+                                        <div class="item">
+                                            <div class="heading-section">
+                                                <h4>Избранные фильмы</h4>
+                                            </div>
+                                            <div class="row">
+                                                {% for movie in favorite_movies %}
+                                                    <div class="col-lg-3 col-md-6 col-sm-12">
+                                                        <div class="item">
+                                                            {% if movie.poster %}
+                                                                <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" class="img-fluid">
+                                                            {% endif %}
+                                                            <h4>{{ movie.title }}</h4>
+                                                        </div>
+                                                    </div>
+                                                {% empty %}
+                                                    <div class="col-12">
+                                                        <h6>У вас пока нет избранных фильмов</h6>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Последние оценки -->
+                                        <div class="gaming-library">
+                                            <div class="heading-section">
+                                                <h4>Последние оценки</h4>
+                                            </div>
+                                            {% for rating in user_ratings %}
+                                                <div class="gaming-library-item">
+                                                    <ul>
+                                                        <li class="movie-poster">
+                                                            {% if rating.movie.poster %}
+                                                                <img src="{{ rating.movie.poster.url }}" alt="" style="border-radius: 10px; width: 80px; height: 120px; object-fit: cover;">
+                                                            {% endif %}
+                                                        </li>
+                                                        <li><h4 style="color: #fff;">{{ rating.movie.title }}</h4><span>Название фильма</span></li>
+                                                        <li><h4 style="color: #fff;">{{ rating.rating }}/10</h4><span>Ваша оценка</span></li>
+                                                        <li>
+                                                            <form method="post" action="{% url 'showcase:delete-rating' rating.id %}" style="display: inline;">
+                                                                {% csrf_token %}
+                                                                <div class="main-button">
+                                                                    <button type="submit" style="background: none; border: none; color: white; cursor: pointer;">
+                                                                        Удалить оценку
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            {% empty %}
+                                                <div class="gaming-library-item">
+                                                    <span class="text-muted">У вас пока нет оценок</span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.gaming-library-item {
+    background-color: #27292a;
+    padding: 15px 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.gaming-library-item ul {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gaming-library-item ul li {
+    margin: 0 15px;
+}
+
+.gaming-library-item h4 {
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+
+.gaming-library-item span {
+    color: #666;
+    font-size: 14px;
+}
+
+.gaming-library-item .main-button {
+    margin: 0;
+}
+
+.gaming-library-item .main-button button:hover {
+    color: #ec6090;
+}
+
+.movie-poster {
+    min-width: 80px;
+}
+
+.heading-section {
+    margin-bottom: 30px;
+}
+
+.heading-section h4 {
+    color: #fff;
+    font-size: 34px;
+    text-decoration: none;
+    margin-bottom: 30px;
+}
+</style>
+{% endblock %} 

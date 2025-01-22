@@ -1,0 +1,17 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+    <h2>Массовое обновление статусов фильмов</h2>
+    <p>
+        Это действие обновит статус всех фильмов, которые вышли более 90 дней назад,
+        с "Сейчас в прокате" на "Прокат завершен".
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="submit-row">
+            <input type="submit" value="Обновить статусы" class="default">
+        </div>
+    </form>
+</div>
+{% endblock %} 

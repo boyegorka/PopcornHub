@@ -76,6 +76,8 @@ def update_movie_statistics():
     current_time = datetime.now().strftime('%H:%M:%S')
     # Получаем все фильмы
     movies = Movie.objects.all()
+    updated_count = 0
+    
     for movie in movies:
         # Подсчитываем статистику
         stats = MovieRating.objects.filter(movie=movie).aggregate(
@@ -87,6 +89,8 @@ def update_movie_statistics():
         movie.total_ratings = stats['total_ratings']
         movie.last_updated = datetime.now()
         movie.save()
+        updated_count += 1
+        
         print(f'''
         {'=' * 50}
         📊 Обновлена статистика фильма:
@@ -96,27 +100,19 @@ def update_movie_statistics():
         ⏰ Время обновления: {current_time}
         {'=' * 50}
         ''')
-        return f'Статистика обновлена для {len(movies)} фильмов'
+    
+    return f'Статистика обновлена для {updated_count} фильмов'
 
 
 @shared_task
 def update_movie_statuses():
     movies = Movie.objects.all()
-    updated_count = 0
+    updated = 0
     
     for movie in movies:
         old_status = movie.status
         movie.update_status()
         if old_status != movie.status:
-            updated_count += 1
-            print(f'''
-            {'=' * 50}
-            🎬 Обновлен статус фильма:
-            📽 Название: {movie.title}
-            📅 Дата релиза: {movie.release_date}
-            🔄 Старый статус: {old_status}
-            ✨ Новый статус: {movie.status}
-            {'=' * 50}
-            ''')
+            updated += 1
     
-    return f'Обновлены статусы для {updated_count} фильмов'
+    return f'Updated status for {updated} movies'

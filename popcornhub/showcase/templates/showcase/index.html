@@ -1,246 +1,177 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load movie_filters %}
+{% load movie_tags %}
 
 {% block content %}
-  <!-- Main Banner Area -->
-  <div class="main-banner">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-10 offset-lg-1">
-          <div class="header-text">
-            <h2></h2>
-            <div class="rating-display"></div>
-            <div class="movie-info"></div>
-            <div class="big-border-button">
-                <a href="#" class="movie-link">View Details</a>
-            </div>
-            <div class="icon-button">
-                <a href="#" class="trailer-link" target="_blank">
-                    <i class="fa fa-play"></i> Watch Trailer
-                </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Featured Movies Section -->
-  <section class="featured-items" id="featured-items">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12">
-          <div class="owl-features owl-carousel" id="topRatedCarousel" style="position: relative; z-index: 5;">
-            {% for movie in top_rated_movies %}
-              {% if movie.poster %} {# Показываем только фильмы с постерами #}
-                <div class="item">
-                  <div class="thumb">
-                    <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
-                    <div class="hover-effect">
-                      <div class="content">
-                        <h4>{{ movie.title }}</h4>
-                        <div class="rating">{{ movie.average_rating|rating_stars|safe }}</div>
-                        <ul>
-                          <li><span>Rating:</span> {{ movie.average_rating|floatformat:1 }}/10</li>
-                          <li><span>Duration:</span> {{ movie.duration|duration_format }}</li>
-                          <li><span>Release Date:</span> {{ movie.release_date }}</li>
-                          <li><span>Genres:</span> 
-                            {% for genre in movie.genres.all %}
-                              {{ genre.name }}{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                          </li>
-                        </ul>
-                        <div class="hidden-data">
-                          <span class="movie-id">{{ movie.id }}</span>
-                          {% if movie.trailer_video %}
-                            <span class="trailer-url">{{ movie.trailer_video.url }}</span>
-                          {% endif %}
-                        </div>
-                      </div>
+    <!-- Main Banner Area -->
+    <div class="main-banner">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 offset-lg-1">
+                    <div class="header-text">
+                        <h2>Обязательно посмотрите</h2>
+                        <div class="rating-display"></div>
+                        <div class="movie-info"></div>
                     </div>
-                  </div>
                 </div>
-              {% endif %}
-            {% endfor %}
-          </div>
+            </div>
         </div>
-      </div>
     </div>
-  </section>
 
-  <section class="popular-categories">
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-lg-6">
-          <div class="section-heading">
-            <h6>Now in Theaters</h6>
-            <h4>Watch <em>Latest</em> Movies in <em>Theaters</em></h4>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="main-button">
-            <a href="#">All Movies</a>
-          </div>
-        </div>
-        {% for movie in latest_movies %}
-        <div class="col-lg-3 col-sm-6">
-          <div class="popular-item">
-            <div class="top-content">
-              <div class="icon">
-                {% if movie.genres.first %}
-                  <i class="fa fa-film"></i>
-                {% endif %}
-              </div>
-              <div class="right">
-                <h4>{{ movie.title|truncatechars:20 }}</h4>
-                <span><em>{{ movie.average_rating|floatformat:1 }}</em> Rating</span>
-              </div>
-            </div>
-            <div class="thumb">
-              {% if movie.poster %}
-                <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
-              {% else %}
-                <img src="{% static 'assets/images/no-poster.jpg' %}" alt="No poster">
-              {% endif %}
-              <span class="category">{{ movie.status|title }}</span>
-              <span class="likes">
-                <i class="fa fa-star"></i> {{ movie.total_ratings }}
-              </span>
-            </div>
-            <div class="border-button">
-              <a href="#">View Details</a>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
+    <!-- Featured Movies Section -->
+    {% show_featured_movies %}
 
-  <section class="closed-contests">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12">
-          <div class="section-heading text-center">
-            <h6>Coming Soon</h6>
-            <h4><em>Upcoming</em> Movies in <em>Theaters</em></h4>
-          </div>
-        </div>
-        <div class="col-lg-12">
-          <div class="owl-features owl-carousel" id="upcomingMovies" style="position: relative; z-index: 5;">
-            {% for movie in upcoming_movies %}
-            <div class="item">
-              <div class="closed-item">
-                <div class="thumb">
-                  {% if movie.poster %}
-                    <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
-                  {% else %}
-                    <img src="{% static 'assets/images/no-poster.jpg' %}" alt="No poster">
-                  {% endif %}
-                  <span class="winner"><em>Release Date:</em> {{ movie.release_date|date:"d M Y" }}</span>
-                  <span class="price">
-                    <em>Genres:</em> 
-                    {% for genre in movie.genres.all|slice:":2" %}
-                      {{ genre.name }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                  </span>
-                </div>
-                <div class="down-content">
-                  <div class="row">
-                    <div class="col-7">
-                      <h4>{{ movie.title|truncatechars:25 }} <br>
-                        <span>{{ movie.duration|duration_format }}</span>
-                      </h4>
-                    </div>
-                    <div class="col-5">
-                      <h4 class="pics">
-                        {% if movie.director %}
-                          {{ movie.director.name|truncatechars:20 }} <br>
-                          <span>Director</span>
-                        {% else %}
-                          TBA <br>
-                          <span>Director</span>
-                        {% endif %}
-                      </h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        <div class="col-lg-12">
-          <div class="border-button text-center">
-            <a href="#">View All Upcoming Movies</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+    <!-- Current Movies Section -->
+    {% show_current_movies %}
 
-  <section class="pricing-plans">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12">
-          <div class="section-heading text-center">
-            <h6>Streaming Services</h6>
-            <h4>Choose Your <em>Favorite</em> Streaming <em>Platform</em></h4>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="pricing-item">
-            {% comment %} <img src="{% static 'assets/images/netflix-logo.jpg' %}" alt="Netflix"> {% endcomment %}
-            <h4>Netflix</h4>
-            <ul class="first-plan">
-              <li><i class="fa fa-check"></i> 4K Ultra HD качество</li>
-              <li><i class="fa fa-check"></i> Загрузка на 4 устройства</li>
-              <li><i class="fa fa-check"></i> Без рекламы</li>
-              <li><i class="fa fa-check"></i> Эксклюзивный контент</li>
-              <li><i class="fa fa-check"></i> Отмена в любой момент</li>
-            </ul>
-            <span class="price">599₽/месяц</span>
-            <div class="border-button">
-              <a href="https://netflix.com" target="_blank">Подключить</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="pricing-item">
-            {% comment %} <img src="{% static 'assets/images/kinopoisk-logo.jpg' %}" alt="Kinopoisk"> {% endcomment %}
-            <h4>Кинопоиск</h4>
-            <ul class="second-plan">
-              <li><i class="fa fa-check"></i> Full HD качество</li>
-              <li><i class="fa fa-check"></i> Загрузка на 5 устройств</li>
-              <li><i class="fa fa-check"></i> Российские премьеры</li>
-              <li><i class="fa fa-check"></i> Интеграция с Яндекс</li>
-              <li><i class="fa fa-check"></i> Семейный доступ</li>
-            </ul>
-            <span class="price">399₽/месяц</span>
-            <div class="border-button">
-              <a href="https://kinopoisk.ru" target="_blank">Подключить</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4">
-          <div class="pricing-item">
-            {% comment %} <img src="{% static 'assets/images/ivi-logo.jpg' %}" alt="IVI"> {% endcomment %}
-            <h4>IVI</h4>
-            <ul class="third-plan">
-              <li><i class="fa fa-check"></i> Full HD качество</li>
-              <li><i class="fa fa-check"></i> Загрузка на 3 устройства</li>
-              <li><i class="fa fa-check"></i> Детский режим</li>
-              <li><i class="fa fa-check"></i> Российские сериалы</li>
-              <li><i class="fa fa-check"></i> Бонусная программа</li>
-            </ul>
-            <span class="price">349₽/месяц</span>
-            <div class="border-button">
-              <a href="https://ivi.ru" target="_blank">Подключить</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+    <!-- Upcoming Movies Section -->
+    {% show_upcoming_movies %}
+
+    <!-- Streaming Services Section -->
+    {% show_streaming_services %}
 {% endblock %}
+
+{% block sidebar %}
+    {% show_genres_sidebar %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateBanner(movieElement) {
+    if (!movieElement) return;
+    
+    const movieId = movieElement.dataset.movieId;
+    console.log('Updating banner for movie ID:', movieId);
+    
+    // Обновляем фоновое изображение
+    const posterImg = movieElement.querySelector('.thumb img');
+    if (posterImg && posterImg.src) {
+        const mainBanner = document.querySelector('.main-banner');
+        mainBanner.style.backgroundImage = `url('${posterImg.src}')`;
+        mainBanner.style.backgroundSize = 'cover';
+        mainBanner.style.backgroundPosition = 'center';
+        mainBanner.style.height = '600px';
+    }
+
+    // Обновляем информацию
+    const title = movieElement.querySelector('.content h4')?.textContent;
+    const description = movieElement.querySelector('.content ul')?.innerHTML;
+    const rating = movieElement.querySelector('.content .rating')?.innerHTML;
+
+    const headerText = document.querySelector('.main-banner .header-text h2');
+    const movieInfo = document.querySelector('.main-banner .movie-info');
+    const ratingDisplay = document.querySelector('.main-banner .rating-display');
+
+    if (headerText && title) headerText.innerHTML = title;
+    if (movieInfo && description) movieInfo.innerHTML = description;
+    if (ratingDisplay && rating) ratingDisplay.innerHTML = rating;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const carousel = document.querySelector('.owl-features');
+    if (carousel) {
+        // Ждем инициализацию карусели
+        setTimeout(() => {
+            const activeSlide = carousel.querySelector('.owl-item.active .item');
+            if (activeSlide) {
+                updateBanner(activeSlide);
+            }
+        }, 100);
+
+        // Обновляем при смене слайда
+        carousel.addEventListener('translated.owl.carousel', function(event) {
+            const activeSlide = carousel.querySelector('.owl-item.active .item');
+            if (activeSlide) {
+                updateBanner(activeSlide);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
+<style>
+.main-banner {
+    position: relative;
+    height: 600px;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.3s ease-in-out;
+}
+
+.main-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.main-banner .container {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.header-text {
+    color: #fff;
+}
+
+.header-text h2 {
+    color: #fff;
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.movie-info {
+    color: #fff;
+    font-size: 18px;
+}
+
+.rating-display {
+    margin: 15px 0;
+    font-size: 24px;
+}
+
+.actors-section {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.actors-info {
+    flex: 1;
+}
+
+.actor-item {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.actor-item:last-child {
+    border-bottom: none;
+}
+
+.actors-grid .actor-item {
+    padding: 10px;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.actors-grid .actor-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.actor-name {
+    color: #fff;
+    font-size: 16px;
+    margin: 0;
+}
+</style>

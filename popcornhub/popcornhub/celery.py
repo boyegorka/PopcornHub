@@ -54,6 +54,6 @@ app.conf.beat_schedule = {
     },
     'update-movie-statuses-every-hour': {
         'task': 'showcase.tasks.update_movie_statuses',
-        'schedule': timedelta(hours=1),
+        'schedule': timedelta(minutes=1),
     },
 }

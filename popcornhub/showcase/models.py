@@ -2,7 +2,7 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from datetime import timedelta
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from PIL import Image
@@ -65,25 +65,21 @@ class Movie(models.Model):
     published = PublishedManager()
 
     def calculate_status(self):
-        try:
-            today = timezone.now().date()
-            theatrical_run = timedelta(days=30)
-            end_date = self.release_date + theatrical_run
-            
-            if self.release_date > today:
-                return 'soon'
-            elif today <= end_date:
-                return 'now'
-            else:
-                return 'end'
-        except Exception as e:
-            print(f"Error calculating status for movie {self.title}: {str(e)}")
+        today = timezone.now().date()
+        release_date = self.release_date
+        
+        if release_date > today:
             return 'soon'
+        elif (today - release_date).days <= 90:
+            return 'now'
+        else:
+            return 'end'
 
     def save(self, *args, **kwargs):
-        # Обработка статуса
-        if not self.pk:
-            self.status = self.calculate_status()
+        # Обработка статуса для новых и существующих записей
+        new_status = self.calculate_status()
+        if self.status != new_status:
+            self.status = new_status
 
         # Обработка изображения при загрузке
         if self.poster and isinstance(self.poster, InMemoryUploadedFile):
@@ -115,13 +111,19 @@ class Movie(models.Model):
         super().save(*args, **kwargs)
 
     def update_status(self):
-        try:
-            new_status = self.calculate_status()
-            if self.status != new_status:
-                self.status = new_status
-                self.save(update_fields=['status'])
-        except Exception as e:
-            print(f"Error updating status for movie {self.title}: {str(e)}")
+        today = timezone.now().date()
+        days_difference = (today - self.release_date).days
+
+        if days_difference < 0:  # Фильм еще не вышел
+            new_status = 'soon'
+        elif days_difference > 90:  # Прошло больше 90 дней
+            new_status = 'end'
+        else:  # Фильм в прокате
+            new_status = 'now'
+
+        if self.status != new_status:
+            self.status = new_status
+            self.save(update_fields=['status'])
 
     def get_absolute_url(self):
         return reverse('movie-detail', kwargs={'pk': self.pk})
@@ -203,42 +205,30 @@ class Genre(models.Model):
 
 # Модель для избранных фильмов
 class Favorite(models.Model):
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)  # Подключаем к пользователю
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    history = HistoricalRecords()
-
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_favorites')
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='movie_favorites')
+    
     class Meta:
-        unique_together = ('user', 'movie')  # Каждый фильм может быть в избранном только у одного пользователя
+        unique_together = ('user', 'movie')
 
     def __str__(self):
-        return f"{self.user.username}'s favorite movie: {self.movie.title}"
+        return f"{self.user.username} - {self.movie.title}"
 
 
-# Модель для оценок фильмов
+# Модель для рейтингов фильмов
 class MovieRating(models.Model):
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    rating = models.PositiveIntegerField(
-        validators=[
-            MinValueValidator(1, 'Rating cannot be less than 1'),
-            MaxValueValidator(10, 'Rating cannot be greater than 10')
-        ]
-    )
-    history = HistoricalRecords()
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='ratings')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, 
+                               validators=[MinValueValidator(1), MaxValueValidator(10)])
 
     class Meta:
-        unique_together = ('movie', 'user')
-
-    def clean(self):
-        if self.rating < 1 or self.rating > 10:
-            raise ValidationError('Rating must be between 1 and 10')
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
+        unique_together = ['movie', 'user']
+        verbose_name = 'Movie Rating'
+        verbose_name_plural = 'Movie Ratings'
 
     def __str__(self):
-        return f'Rating for {self.movie.title} by {self.user.username}: {self.rating}'
+        return f"{self.movie.title} - {self.user.username} - {self.rating}"
 
 
 # Модель для онлайн кинотеатров
@@ -267,7 +257,7 @@ class MovieOnlineCinema(models.Model):
 
 
 class UserVisit(models.Model):
-    user = models.ForeignKey(get_user_model(), null=True, blank=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     path = models.CharField(max_length=255)
     method = models.CharField(max_length=10)
     timestamp = models.DateTimeField(auto_now_add=True)
