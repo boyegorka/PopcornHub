@@ -11,7 +11,7 @@ class MovieForm(forms.ModelForm):
     
     genres = forms.ModelMultipleChoiceField(
         queryset=Genre.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'genre-checkbox-list'}),
         help_text='Выберите жанры фильма'
     )
     
@@ -31,6 +31,8 @@ class MovieForm(forms.ModelForm):
             'release_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'duration': forms.NumberInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
+            'poster': forms.FileInput(attrs={'class': 'form-control'}),
+            'genres': forms.CheckboxSelectMultiple(attrs={'class': 'genre-checkbox-list'}),
         }
         
         labels = {

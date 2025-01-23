@@ -777,16 +777,21 @@ def index(request):
         'online_cinemas': online_cinemas
     })
 
+@staff_member_required
 def movie_create(request):
     if request.method == 'POST':
         form = MovieForm(request.POST, request.FILES)
         if form.is_valid():
             movie = form.save()
-            return HttpResponseRedirect(reverse('showcase:movie-detail', args=[movie.id]))
+            messages.success(request, 'Фильм успешно добавлен!')
+            return redirect('showcase:movie-detail', pk=movie.pk)
     else:
         form = MovieForm()
     
-    return render(request, 'showcase/movie_form.html', {'form': form})
+    return render(request, 'showcase/movie_form.html', {
+        'form': form,
+        'title': 'Добавление нового фильма'
+    })
 
 def movie_update(request, pk):
     movie = get_object_or_404(Movie, pk=pk)
@@ -816,30 +821,34 @@ def movie_delete(request, pk):
         
     return redirect('showcase:movie-detail', pk=pk)
 
+@staff_member_required
 def get_movie_stats(request):
-    # Используем exists()
-    has_movies = Movie.objects.filter(status='now').exists()
+    # Получаем общую статистику
+    total_movies = Movie.objects.count()
+    avg_rating = Movie.objects.aggregate(Avg('average_rating'))['average_rating__avg']
+    avg_duration = Movie.objects.aggregate(Avg('duration'))['duration__avg']
+
+    # Получаем статистику по статусам
+    stats = Movie.objects.values('status').annotate(
+        count=Count('id'),
+        avg_rating=Avg('average_rating'),
+        avg_duration=Avg('duration')
+    )
+
+    # Получаем топ жанров
+    top_genres = Genre.objects.annotate(
+        movie_count=Count('movies')
+    ).order_by('-movie_count')[:5]
+
+    context = {
+        'total_movies': total_movies,
+        'avg_rating': avg_rating,
+        'avg_duration': avg_duration,
+        'stats': stats,
+        'top_genres': top_genres,
+    }
     
-    if has_movies:
-        # Используем values() для получения статистики
-        stats = Movie.objects.values('status').annotate(
-            count=Count('id'),
-            avg_rating=Avg('average_rating'),
-            avg_duration=Avg('duration')
-        )
-        
-        # Получаем топ жанров
-        top_genres = Genre.objects.annotate(
-            movie_count=Count('movies')
-        ).values('name', 'movie_count').order_by('-movie_count')[:5]
-        
-        return render(request, 'showcase/movie_stats.html', {
-            'has_movies': has_movies,
-            'stats': stats,
-            'top_genres': top_genres
-        })
-    
-    return render(request, 'showcase/movie_stats.html', {'has_movies': has_movies})
+    return render(request, 'showcase/movie_stats.html', context)
 
 @staff_member_required
 def bulk_status_update(request):
@@ -1020,3 +1029,19 @@ def delete_rating(request, rating_id):
         
         messages.success(request, 'Оценка удалена')
     return redirect('showcase:profile')
+
+def movie_list(request):
+    query = request.GET.get('q', '')
+    movies = Movie.objects.all().order_by('-release_date')
+    
+    if query:
+        movies = movies.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query)
+        )
+    
+    context = {
+        'movies': movies,
+        'query': query
+    }
+    return render(request, 'showcase/movie_list_all.html', context)

@@ -5,23 +5,45 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'showcase:index' %}">Home</a>
+                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" 
+                       href="{% url 'showcase:index' %}">Главная</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'movies/all' in request.path %}active{% endif %}" 
+                       href="{% url 'showcase:all-movies' %}">Все фильмы</a>
+                </li>
+                {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'stats' in request.path %}active{% endif %}" 
+                           href="{% url 'showcase:movie-stats' %}">Статистика</a>
+                    </li>
+                {% endif %}
+            </ul>
+            
+            <ul class="navbar-nav">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'showcase:profile' %}">Profile</a>
+                        <a class="nav-link {% if 'profile' in request.path %}active{% endif %}" 
+                           href="{% url 'showcase:profile' %}">Профиль</a>
                     </li>
+                    {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:index' %}">Админ панель</a>
+                        </li>
+                    {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'showcase:logout' %}">Logout</a>
+                        <a class="nav-link" href="{% url 'showcase:logout' %}">Выход</a>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'showcase:login' %}">Login</a>
+                        <a class="nav-link {% if 'login' in request.path %}active{% endif %}" 
+                           href="{% url 'showcase:login' %}">Вход</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'showcase:register' %}">Register</a>
+                        <a class="nav-link {% if 'register' in request.path %}active{% endif %}" 
+                           href="{% url 'showcase:register' %}">Регистрация</a>
                     </li>
                 {% endif %}
             </ul>
