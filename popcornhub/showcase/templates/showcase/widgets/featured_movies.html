@@ -92,14 +92,9 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
-                <!-- Отладочная информация -->
-                <div style="display: none;">
-                    Total movies: {{ featured_movies|length }}
-                </div>
-                
-                <div class="owl-features owl-carousel">
+                <div class="owl-features owl-carousel" id="featuredCarousel">
                     {% for movie in featured_movies %}
-                        <div class="item">
+                        <div class="item" data-movie-id="{{ movie.id }}">
                             <div class="thumb">
                                 {% if movie.poster %}
                                     <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
@@ -126,4 +121,81 @@
             </div>
         </div>
     </div>
-</section> 
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const carousel = $('#featuredCarousel').owlCarousel({
+        items: 1,
+        loop: true,
+        nav: true,
+        dots: true,
+        autoplay: true,
+        autoplayTimeout: 5000,
+        smartSpeed: 1000
+    });
+
+    function updateMainBanner() {
+        const activeSlide = $('.owl-features .owl-item.active .item').first();
+        if (!activeSlide.length) return;
+
+        const movieId = activeSlide.data('movie-id');
+        
+        // Обновляем основную информацию
+        const mainBanner = document.getElementById('mainBanner');
+        const bannerTitle = document.getElementById('bannerTitle');
+        const bannerRating = document.getElementById('bannerRating');
+        const bannerInfo = document.getElementById('bannerInfo');
+
+        const posterImg = activeSlide.find('.thumb img').first();
+        const title = activeSlide.find('.content h4').first();
+        const rating = activeSlide.find('.content .rating').first();
+        const movieInfo = activeSlide.find('.content ul').first();
+
+        if (posterImg.length) {
+            mainBanner.style.backgroundImage = `url('${posterImg.attr('src')}')`;
+        }
+        if (bannerTitle && title.length) {
+            bannerTitle.textContent = title.text().trim();
+        }
+        if (bannerRating && rating.length) {
+            bannerRating.innerHTML = rating.html();
+        }
+        if (bannerInfo && movieInfo.length) {
+            bannerInfo.innerHTML = movieInfo.html();
+        }
+
+        // Загружаем и обновляем актеров
+        if (movieId) {
+            fetch(`/api/movies/${movieId}/actors/`)
+                .then(response => response.json())
+                .then(actors => {
+                    const actorsList = document.querySelector('.actors-list');
+                    if (actorsList) {
+                        actorsList.innerHTML = actors.map(actor => `
+                            <div class="actor-card">
+                                <img src="${actor.photo_url || '/static/assets/images/no-photo.jpg'}" 
+                                     alt="${actor.name}" 
+                                     class="actor-photo">
+                                <div class="actor-info">
+                                    <p class="actor-name">${actor.name}</p>
+                                    <p class="actor-role">${actor.role || 'В главной роли'}</p>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(error => console.error('Error loading actors:', error));
+        }
+    }
+
+    // Обновляем баннер при инициализации
+    carousel.on('initialized.owl.carousel', updateMainBanner);
+
+    // Обновляем баннер при смене слайда
+    carousel.on('translated.owl.carousel', updateMainBanner);
+
+    // Первоначальное обновление
+    setTimeout(updateMainBanner, 100);
+});
+</script>

@@ -772,10 +772,15 @@ def movie_detail_view(request, movie_id):
     return Response(serializer.data)
 
 def index(request):
-    online_cinemas = OnlineCinema.objects.all()
-    return render(request, 'showcase/index.html', {
-        'online_cinemas': online_cinemas
-    })
+    featured_movies = Movie.objects.filter(
+        status='now',
+        poster__isnull=False
+    ).order_by('-average_rating')[:5]
+    
+    context = {
+        'featured_movies': featured_movies,
+    }
+    return render(request, 'showcase/index.html', context)
 
 @staff_member_required
 def movie_create(request):
@@ -981,7 +986,7 @@ def rate_movie(request, movie_id):
             messages.success(request, 'Ваша оценка сохранена!')
         else:
             messages.error(request, 'Некорректная оценка')
-    return redirect('showcase:movie-detail', movie_id=movie_id)
+    return redirect('showcase:movie-detail', pk=movie_id)
 
 @login_required
 def add_to_favorite(request, movie_id):
@@ -996,7 +1001,7 @@ def add_to_favorite(request, movie_id):
             messages.success(request, 'Фильм удален из избранного')
         else:
             messages.success(request, 'Фильм добавлен в избранное')
-    return redirect('showcase:movie-detail', movie_id=movie_id)
+    return redirect('showcase:movie-detail', pk=movie_id)
 
 def movie_detail(request, pk):
     movie = get_object_or_404(Movie, pk=pk)

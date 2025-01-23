@@ -5,14 +5,26 @@
 
 {% block content %}
     <!-- Main Banner Area -->
-    <div class="main-banner">
-        <div class="container">
+    <div class="main-banner" id="mainBanner">
+        <div class="container-fluid px-4">
             <div class="row">
-                <div class="col-lg-10 offset-lg-1">
+                <div class="col-lg-7">
                     <div class="header-text">
-                        <h2>Обязательно посмотрите</h2>
-                        <div class="rating-display"></div>
-                        <div class="movie-info"></div>
+                        <div class="movie-details">
+                            <h2 id="bannerTitle">{{ featured_movies.0.title }}</h2>
+                            <div class="rating-display" id="bannerRating">{{ featured_movies.0.average_rating|rating_stars_10|safe }}</div>
+                            <div class="movie-info" id="bannerInfo">
+                                <ul>
+                                    <li><span>Жанры:</span>
+                                        {% for genre in featured_movies.0.genres.all %}
+                                            {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </li>
+                                    <li><span>Дата выхода:</span> {{ featured_movies.0.release_date }}</li>
+                                    <li><span>Длительность:</span> {{ featured_movies.0.duration }} мин.</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -38,53 +50,57 @@
 
 {% block extra_js %}
 <script>
-function updateBanner(movieElement) {
-    if (!movieElement) return;
-    
-    const movieId = movieElement.dataset.movieId;
-    console.log('Updating banner for movie ID:', movieId);
-    
-    // Обновляем фоновое изображение
-    const posterImg = movieElement.querySelector('.thumb img');
-    if (posterImg && posterImg.src) {
-        const mainBanner = document.querySelector('.main-banner');
-        mainBanner.style.backgroundImage = `url('${posterImg.src}')`;
-        mainBanner.style.backgroundSize = 'cover';
-        mainBanner.style.backgroundPosition = 'center';
-        mainBanner.style.height = '600px';
-    }
+$(document).ready(function() {
+    // Инициализация карусели
+    $('.owl-features').owlCarousel({
+        items: 1,
+        loop: true,
+        nav: true,
+        dots: true,
+        autoplay: true,
+        autoplayTimeout: 5000,
+        smartSpeed: 1000,
+        onInitialized: updateBanner,
+        onTranslated: updateBanner
+    });
 
-    // Обновляем информацию
-    const title = movieElement.querySelector('.content h4')?.textContent;
-    const description = movieElement.querySelector('.content ul')?.innerHTML;
-    const rating = movieElement.querySelector('.content .rating')?.innerHTML;
+    function updateBanner(event) {
+        const activeSlide = $('.owl-features .owl-item.active .item').first();
+        if (!activeSlide.length) return;
 
-    const headerText = document.querySelector('.main-banner .header-text h2');
-    const movieInfo = document.querySelector('.main-banner .movie-info');
-    const ratingDisplay = document.querySelector('.main-banner .rating-display');
+        console.log('Updating banner...'); // Отладка
 
-    if (headerText && title) headerText.innerHTML = title;
-    if (movieInfo && description) movieInfo.innerHTML = description;
-    if (ratingDisplay && rating) ratingDisplay.innerHTML = rating;
-}
+        // Получаем данные из активного слайда
+        const posterImg = activeSlide.find('.thumb img');
+        const title = activeSlide.find('.content h4');
+        const rating = activeSlide.find('.content .rating');
+        const movieInfo = activeSlide.find('.content ul');
 
-document.addEventListener('DOMContentLoaded', function() {
-    const carousel = document.querySelector('.owl-features');
-    if (carousel) {
-        // Ждем инициализацию карусели
-        setTimeout(() => {
-            const activeSlide = carousel.querySelector('.owl-item.active .item');
-            if (activeSlide) {
-                updateBanner(activeSlide);
-            }
-        }, 100);
+        // Обновляем баннер
+        if (posterImg.length) {
+            $('.main-banner').css({
+                'background-image': `url('${posterImg.attr('src')}')`,
+                'background-size': 'cover',
+                'background-position': 'center'
+            });
+        }
 
-        // Обновляем при смене слайда
-        carousel.addEventListener('translated.owl.carousel', function(event) {
-            const activeSlide = carousel.querySelector('.owl-item.active .item');
-            if (activeSlide) {
-                updateBanner(activeSlide);
-            }
+        // Обновляем информацию
+        if (title.length) {
+            $('.main-banner .header-text h2').html(title.text());
+        }
+        if (rating.length) {
+            $('.main-banner .rating-display').html(rating.html());
+        }
+        if (movieInfo.length) {
+            $('.main-banner .movie-info').html(movieInfo.html());
+        }
+
+        console.log('Banner updated with:', {
+            poster: posterImg.attr('src'),
+            title: title.text(),
+            rating: rating.html(),
+            info: movieInfo.html()
         });
     }
 });
@@ -107,71 +123,143 @@ document.addEventListener('DOMContentLoaded', function() {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-}
-
-.main-banner .container {
-    position: relative;
-    z-index: 1;
-    height: 100%;
-    display: flex;
-    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%);
 }
 
 .header-text {
-    color: #fff;
+    position: relative;
+    z-index: 2;
+    padding-top: 200px;
+    text-align: left;
 }
 
-.header-text h2 {
-    color: #fff;
-    font-size: 48px;
-    margin-bottom: 20px;
+.movie-details {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 30px;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    max-width: 600px;
+    text-align: left;
+    margin-left: 6%;
+}
+
+.movie-details h2 {
+    color: #ffffff;
+    font-size: 42px;
+    margin: 0 0 20px 0;
+    line-height: 1.2;
+    text-align: left;
+    font-weight: bold;
 }
 
 .movie-info {
-    color: #fff;
+    color: #ffffff;
     font-size: 18px;
+    text-align: left;
+}
+
+.movie-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.movie-info li {
+    color: #ffffff;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.movie-info span {
+    color: #ffffff;
+    opacity: 0.8;
+    margin-right: 10px;
+    min-width: 120px;
+    display: inline-block;
 }
 
 .rating-display {
     margin: 15px 0;
-    font-size: 24px;
+    font-size: 28px;
+    color: #ffffff;
+    text-align: left;
+}
+
+.rating-display i {
+    color: #ffd700;
+    margin: 0 2px;
+}
+
+@media (max-width: 991px) {
+    .movie-details {
+        margin: 0 15px;
+        max-width: calc(100% - 30px);
+    }
+}
+
+/* Выравнивание по левому краю на уровне featured блока */
+@media (min-width: 992px) {
+    .main-banner .container-fluid {
+        padding-left: 6%; /* Отступ как у featured блока */
+        padding-right: 6%;
+    }
+}
+
+@media (max-width: 991px) {
+    .main-banner .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
 }
 
 .actors-section {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 30px;
+    border-radius: 10px;
+    margin-top: 200px;
+    backdrop-filter: blur(5px);
 }
 
-.actors-info {
+.actors-section h3 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.actors-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.actor-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    width: 100%;
+}
+
+.actor-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.actor-info {
     flex: 1;
 }
 
-.actor-item {
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.actor-item:last-child {
-    border-bottom: none;
-}
-
-.actors-grid .actor-item {
-    padding: 10px;
-    margin-bottom: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.actors-grid .actor-item:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
 .actor-name {
-    color: #fff;
-    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.actor-role {
+    color: #aaa;
+    font-size: 14px;
     margin: 0;
 }
 
@@ -187,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .thumb {
     position: relative;
     width: 100%;
-    padding-top: 100%; /* Уменьшили высоту */
+    padding-top: 100%;
     overflow: hidden;
 }
 
@@ -198,8 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 0; /* Убрали скругление */
-    margin: 0; /* Убрали отступы */
+    border-radius: 0;
+    margin: 0;
 }
 
 .hover-effect {
@@ -249,13 +337,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .movie-card {
     border: none;
-    border-radius: 0; /* Убрали скругление у карточки */
+    border-radius: 0;
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .movie-card .card-body {
-    padding: 15px; /* Уменьшили отступы в карточке */
+    padding: 15px;
 }
 
 .most-popular {
@@ -270,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .most-popular .item .thumb {
     position: relative;
     width: 100%;
-    padding-top: 150%; /* Уменьшили высоту */
+    padding-top: 150%;
     overflow: hidden;
 }
 
@@ -281,8 +369,8 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 0; /* Убрали скругление */
-    margin: 0; /* Убрали отступы */
+    border-radius: 0;
+    margin: 0;
 }
 
 .most-popular .item .hover-effect {
