@@ -1,0 +1,33 @@
+<!-- Добавим форму для массовых операций -->
+<form method="post" action="{% url 'showcase:batch-operations' %}">
+    {% csrf_token %}
+    <div class="mb-3">
+        <select name="action" class="form-select">
+            <option value="update_status">Обновить статус</option>
+            <option value="delete">Удалить</option>
+        </select>
+        <select name="new_status" class="form-select mt-2">
+            <option value="soon">Скоро</option>
+            <option value="now">В прокате</option>
+            <option value="end">Завершен</option>
+        </select>
+        <button type="submit" class="btn btn-warning mt-2">Применить</button>
+    </div>
+    
+    <div class="row">
+        {% for movie in movies %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-check">
+                            <input type="checkbox" name="selected_movies" value="{{ movie.id }}" class="form-check-input">
+                            <label class="form-check-label">{{ movie.title }}</label>
+                        </div>
+                        <p class="card-text">{{ movie.description|truncatewords:30 }}</p>
+                        <p class="card-text"><small class="text-muted">Статус: {{ movie.get_status_display }}</small></p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</form> 

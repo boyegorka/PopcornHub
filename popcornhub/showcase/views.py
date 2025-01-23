@@ -804,16 +804,17 @@ def movie_update(request, pk):
         'movie': movie
     })
 
+@staff_member_required
 def movie_delete(request, pk):
     movie = get_object_or_404(Movie, pk=pk)
     
     if request.method == 'POST':
+        title = movie.title
         movie.delete()
-        return HttpResponseRedirect(reverse('showcase:movie-list'))
-    
-    return render(request, 'showcase/movie_confirm_delete.html', {
-        'movie': movie
-    })
+        messages.success(request, f'Фильм "{title}" был успешно удален.')
+        return redirect('showcase:movie-list')
+        
+    return redirect('showcase:movie-detail', pk=pk)
 
 def get_movie_stats(request):
     # Используем exists()
@@ -988,12 +989,19 @@ def add_to_favorite(request, movie_id):
             messages.success(request, 'Фильм добавлен в избранное')
     return redirect('showcase:movie-detail', movie_id=movie_id)
 
-def movie_detail(request, movie_id):
-    movie = get_object_or_404(Movie.objects.prefetch_related('actors', 'genres'), id=movie_id)
-    is_favorite = Favorite.objects.filter(user=request.user, movie=movie).exists() if request.user.is_authenticated else False
+def movie_detail(request, pk):
+    movie = get_object_or_404(Movie, pk=pk)
+    # Получаем отсортированных актеров
+    movie_actors = movie.movieactor_set.all().order_by('-is_main_role')
+    # Получаем только будущие сеансы
+    showtimes = movie.showtime_set.filter(
+        start_time__gte=timezone.now()
+    ).select_related('cinema').order_by('start_time')
+    
     context = {
         'movie': movie,
-        'is_favorite': is_favorite,
+        'movie_actors': movie_actors,
+        'showtimes': showtimes,
     }
     return render(request, 'showcase/movie_detail.html', context)
 
